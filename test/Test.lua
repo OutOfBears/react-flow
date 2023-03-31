@@ -5,18 +5,20 @@ local React = require(Packages.React)
 local useEffect = React.useEffect
 local createElement = React.createElement
 
-local RoactAnimation = require(Packages.ReactAnimation)
-local useTween = RoactAnimation.useTween
-local useSpring = RoactAnimation.useSpring
+local ReactAnimation = require(Packages.ReactAnimation)
+local Animation = ReactAnimation.Animation
+local useTween = ReactAnimation.useTween
+local useSpring = ReactAnimation.useSpring
+local useSequence = ReactAnimation.useSequence
 
 -- @helpers
 local function createFrame(props, children)
-	props.Size = UDim2.fromScale(1, 1)
+	props.Size = props.Size or UDim2.fromScale(1, 1)
 	props.SizeConstraint = Enum.SizeConstraint.RelativeXX
 	props.Text = props.Name
 
 	return createElement("Frame", {
-		Size = UDim2.fromScale(0.1, 0.5),
+		Size = UDim2.fromScale(0.1, 0.25),
 		AnchorPoint = Vector2.new(0.5, 0),
 		BackgroundTransparency = 1,
 	}, {
@@ -25,6 +27,35 @@ local function createFrame(props, children)
 end
 
 -- @tests
+-- @TestSequence
+local function TestSequence()
+	local sequence, play, stop = useSequence({
+		position = Animation(
+			"Spring",
+			0,
+			{ start = UDim2.fromScale(-1, 0), goal = UDim2.fromScale(1, 0), speed = 20, damper = 0.7 }
+		),
+
+		size = Animation(
+			"Tween",
+			0.2,
+			{ start = UDim2.fromScale(0.5, 0.5), goal = UDim2.fromScale(1.2, 1.2), tweenInfo = TweenInfo.new(1) }
+		),
+	})
+
+	useEffect(function()
+		play()
+
+		return stop
+	end, {})
+
+	return createFrame({
+		Name = "Sequence",
+		Position = sequence.position,
+		Size = sequence.size,
+	})
+end
+
 -- @TestTween
 local function TestTween()
 	local value, update = useTween(UDim2.fromScale(0, 0), TweenInfo.new(1))
@@ -92,6 +123,7 @@ local function Test()
 
 		tween = createElement(TestTween),
 		spring = createElement(TestSpring),
+		sequence = createElement(TestSequence),
 	})
 end
 
