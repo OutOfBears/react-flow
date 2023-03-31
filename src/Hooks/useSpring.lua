@@ -61,10 +61,6 @@ local function useSpring(initial: LinearValue.LinearValueType, speed: number?, d
 
 			SpringValues[spring] = setState
 		end,
-		function(velocity: LinearValue.LinearValueType)
-			spring:Impulse(velocity)
-			SpringValues[spring] = setState
-		end,
 		function()
 			SpringValues[spring] = nil
 		end
