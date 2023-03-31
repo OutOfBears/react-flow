@@ -1,5 +1,5 @@
 {
-  "name": "React Animation Test",
+  "name": "Roact-Flow Animation Test",
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
@@ -9,7 +9,7 @@
         "$path": "Packages"
       },
 
-      "ReactAnimation": {
+      "RoactAnimation": {
         "$path": "src"
       }
     },

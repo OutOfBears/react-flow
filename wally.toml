@@ -1,6 +1,6 @@
 [package]
-name = "nexure/react-animation"
-version = "0.1.0"
+name = "nexure/roact-animation"
+version = "0.1.1"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 

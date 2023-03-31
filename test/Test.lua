@@ -5,7 +5,7 @@ local Roact = require(Packages.Roact)
 local useEffect = Roact.useEffect
 local createElement = Roact.createElement
 
-local ReactAnimation = require(Packages.ReactAnimation)
+local ReactAnimation = require(Packages.RoactAnimation)
 local Animation = ReactAnimation.Animation
 local useTween = ReactAnimation.useTween
 local useSpring = ReactAnimation.useSpring
