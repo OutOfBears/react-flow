@@ -1,15 +1,16 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Packages = ReplicatedStorage:WaitForChild("Packages")
 
-local React = require(Packages.React)
-local useEffect = React.useEffect
-local createElement = React.createElement
+local Roact = require(Packages.Roact)
+local useEffect = Roact.useEffect
+local createElement = Roact.createElement
 
 local ReactAnimation = require(Packages.ReactAnimation)
 local Animation = ReactAnimation.Animation
 local useTween = ReactAnimation.useTween
 local useSpring = ReactAnimation.useSpring
 local useSequence = ReactAnimation.useSequence
+local useLatest = ReactAnimation.useLatest
 
 -- @helpers
 local function createFrame(props, children)
@@ -53,6 +54,48 @@ local function TestSequence()
 		Name = "Sequence",
 		Position = sequence.position,
 		Size = sequence.size,
+	})
+end
+
+-- @TestPriority
+local function TestPriority()
+	local sequence1, play1 = useSequence({
+		position = Animation(
+			"Spring",
+			0,
+			{ start = UDim2.fromScale(-1, 0), goal = UDim2.fromScale(1, 0), speed = 20, damper = 0.7 }
+		),
+
+		size = Animation(
+			"Tween",
+			1,
+			{ start = UDim2.fromScale(0.5, 0.5), goal = UDim2.fromScale(1.2, 1.2), tweenInfo = TweenInfo.new(1) }
+		),
+	})
+
+	local sequence2, play2 = useSequence({
+		position = Animation(
+			"Spring",
+			0.1,
+			{ start = UDim2.fromScale(1, 0), goal = UDim2.fromScale(-1, 0), speed = 20, damper = 0.7 }
+		),
+
+		size = Animation(
+			"Tween",
+			0.2,
+			{ start = UDim2.fromScale(0.7, 0.7), goal = UDim2.fromScale(0.1, 0.1), tweenInfo = TweenInfo.new(1) }
+		),
+	})
+
+	useEffect(function()
+		play1()
+		play2()
+	end, {})
+
+	return createFrame({
+		Name = "Priority",
+		Position = useLatest(sequence1.position, sequence2.position),
+		Size = useLatest(sequence1.size, sequence2.size),
 	})
 end
 
@@ -124,6 +167,7 @@ local function Test()
 		tween = createElement(TestTween),
 		spring = createElement(TestSpring),
 		sequence = createElement(TestSequence),
+		priority = createElement(TestPriority),
 	})
 end
 
