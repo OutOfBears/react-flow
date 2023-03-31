@@ -1,10 +1,10 @@
 local TweenService = game:GetService("TweenService")
 
-local React = require(script.Parent.Parent.React)
-local useRef = React.useRef
-local useState = React.useState
-local useEffect = React.useEffect
-local useMemo = React.useMemo
+local Roact = require(script.Parent.Parent.Roact)
+local useRef = Roact.useRef
+local useState = Roact.useState
+local useEffect = Roact.useEffect
+local useMemo = Roact.useMemo
 
 local LinearValue = require(script.Parent.Parent.Utility.LinearValue)
 type LinearValue = typeof(LinearValue)

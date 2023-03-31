@@ -1,9 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Packages = ReplicatedStorage.Packages
 
-local React = require(Packages.React)
-local createElement = React.createElement
-local mount, unmount = React.mount, React.unmount
+local Roact = require(Packages.Roact)
+local createElement = Roact.createElement
+local mount, unmount = Roact.mount, Roact.unmount
 
 return function(container)
 	local reactAnimation = ReplicatedStorage.ReactAnimation

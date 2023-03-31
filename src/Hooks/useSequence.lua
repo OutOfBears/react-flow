@@ -1,5 +1,5 @@
-local React = require(script.Parent.Parent.React)
-local useRef = React.useRef
+local Roact = require(script.Parent.Parent.Roact)
+local useRef = Roact.useRef
 
 local Animation = require(script.Parent.Parent.Animation)
 export type Animation = typeof(Animation)

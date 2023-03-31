@@ -1,9 +1,9 @@
 local RunService = game:GetService("RunService")
 
-local React = require(script.Parent.Parent.React)
-local useEffect = React.useEffect
-local useState = React.useState
-local useMemo = React.useMemo
+local Roact = require(script.Parent.Parent.Roact)
+local useEffect = Roact.useEffect
+local useState = Roact.useState
+local useMemo = Roact.useMemo
 
 local Utility = script.Parent.Parent.Utility
 local LinearValue = require(Utility.LinearValue)

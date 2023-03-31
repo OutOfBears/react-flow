@@ -7,9 +7,9 @@ ReplicatedStorage.ReactAnimation.Parent = Packages
 
 local Test = require(script.Test)
 
-local React = require(Packages.React)
-local createElement = React.createElement
-local mount = React.mount
+local Roact = require(Packages.Roact)
+local createElement = Roact.createElement
+local mount = Roact.mount
 
 if not LocalPlayer.Character then
 	LocalPlayer.CharacterAdded:Wait()
