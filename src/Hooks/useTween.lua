@@ -18,13 +18,16 @@ local function useTween(initial: LinearValue.LinearValueType, tweenInfo: TweenIn
 		return LinearValue.fromValue(initial)
 	end)
 
+	local lastValueRef = useRef(current)
 	local numberValue = useMemo(function()
 		return Instance.new("NumberValue")
 	end, {})
 
 	useEffect(function()
 		local connection = numberValue:GetPropertyChangedSignal("Value"):Connect(function()
-			setState(initialRef.current:Lerp(goalRef.current, numberValue.Value))
+			local newValue = initialRef.current:Lerp(goalRef.current, numberValue.Value)
+			lastValueRef.current = newValue
+			setState(newValue)
 		end)
 
 		return function()
@@ -50,7 +53,7 @@ local function useTween(initial: LinearValue.LinearValueType, tweenInfo: TweenIn
 			end
 
 			if not startValue then
-				startValue = current:ToValue()
+				startValue = lastValueRef.current:ToValue()
 			end
 
 			if tweenRef.current then
