@@ -33,13 +33,4 @@ local function useSequence(animations: { [string]: Animation })
 		end
 end
 
-local function Component(props)
-	local sequence, play = useSequence({
-		disappear = Animation("Spring", 0, { start = 0, goal = 1, speed = 20, damper = 1 }),
-		test = Animation("Tween", 0.1, { start = 0, goal = 1, tweenInfo = TweenInfo.new(1) }),
-	})
-
-	play()
-end
-
 return useSequence
