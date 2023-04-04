@@ -2,10 +2,9 @@ local Roact = require(script.Parent.Parent.Roact)
 local useEffect = Roact.useEffect
 local useState = Roact.useState
 
-export type Callback = (...any) -> ()
-
 local function useLatest(...: any...)
-	local state, setState = useState()
+	local initialValue = select(1, ...)
+	local state, setState = useState(initialValue)
 
 	for _, value in { ... } do
 		useEffect(function()
