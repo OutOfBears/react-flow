@@ -20,7 +20,7 @@ local function Animation(name: string, timeStep: number?, props: SpringProps | T
 	local update
 	local value
 
-	local play, stop
+	local play, playReverse, stop
 
 	if name == "Tween" then
 		assert(props.start, "Tween requires a start value")
@@ -34,6 +34,13 @@ local function Animation(name: string, timeStep: number?, props: SpringProps | T
 				goal = props.goal,
 			})
 		end
+
+		playReverse = function()
+			update({
+				start = props.goal,
+				goal = props.start,
+			})
+		end
 	elseif name == "Spring" then
 		assert(props.start, "Spring requires a start value")
 		assert(props.goal, "Spring requires a goal value")
@@ -41,8 +48,16 @@ local function Animation(name: string, timeStep: number?, props: SpringProps | T
 		value, update, stop = useSpring(props.start, props.speed, props.damper)
 		play = function()
 			update({
-				goal = props.goal,
 				value = props.start,
+				goal = props.goal,
+				force = props.force,
+			})
+		end
+
+		playReverse = function()
+			update({
+				value = props.goal,
+				goal = props.start,
 				force = props.force,
 			})
 		end
@@ -52,7 +67,9 @@ local function Animation(name: string, timeStep: number?, props: SpringProps | T
 
 	return {
 		timeStep = timeStep,
+		start = props.start,
 		value = value,
+		playReverse = playReverse,
 		play = play,
 		stop = stop,
 	}
