@@ -4,76 +4,86 @@ local Roact = require(script.Parent.Parent.Roact)
 local useRef = Roact.useRef
 local useState = Roact.useState
 local useEffect = Roact.useEffect
-local useMemo = Roact.useMemo
 
 local LinearValue = require(script.Parent.Parent.Utility.LinearValue)
 type LinearValue = typeof(LinearValue)
 
-local function useTween(initial: LinearValue.LinearValueType, tweenInfo: TweenInfo)
-	local initialRef = useRef()
-	local goalRef = useRef()
-	local tweenRef = useRef()
+local function makeTween(updateState: (any) -> (), initial: LinearValue.LinearValueType, tweenInfo: TweenInfo)
+	local start, goal, tween
+	local current = LinearValue.fromValue(initial)
 
-	local current, setState = useState(function()
-		return LinearValue.fromValue(initial)
+	local value = Instance.new("NumberValue")
+	value:GetPropertyChangedSignal("Value"):Connect(function()
+		current = start:Lerp(goal, value.Value)
+		updateState(current:ToValue())
 	end)
 
-	local lastValueRef = useRef(current)
-	local numberValue = useMemo(function()
-		return Instance.new("NumberValue")
-	end, {})
+	return {
+		destroy = function()
+			value:Destroy()
+		end,
 
-	useEffect(function()
-		local connection = numberValue:GetPropertyChangedSignal("Value"):Connect(function()
-			local newValue = initialRef.current:Lerp(goalRef.current, numberValue.Value)
-			lastValueRef.current = newValue
-			setState(newValue)
-		end)
-
-		return function()
-			if tweenRef.current then
-				tweenRef.current:Cancel()
-				tweenRef.current = nil
-			end
-
-			connection:Disconnect()
-		end
-	end, {})
-
-	return current:ToValue(),
-		function(animation: {
+		play = function(animation: {
 			start: LinearValue.LinearValueType?,
 			goal: LinearValue.LinearValueType?,
 		})
 			local startValue = animation.start
 			local endValue = animation.goal
 
-			if not endValue or (goalRef.current and goalRef.current:ToValue() == endValue) then
+			local currentValue = current:ToValue()
+
+			if startValue == currentValue and endValue == currentValue then
 				return
 			end
 
 			if not startValue then
-				startValue = lastValueRef.current:ToValue()
+				startValue = currentValue
 			end
 
-			if tweenRef.current then
-				tweenRef.current:Cancel()
+			if tween then
+				tween:Cancel()
 			end
 
-			initialRef.current = LinearValue.fromValue(startValue)
-			goalRef.current = LinearValue.fromValue(endValue)
+			start = LinearValue.fromValue(startValue)
+			goal = LinearValue.fromValue(endValue)
 
-			numberValue.Value = 0
+			value.Value = 0
 
-			tweenRef.current = TweenService:Create(numberValue, tweenInfo, { Value = 1 })
-			tweenRef.current:Play()
+			tween = TweenService:Create(value, tweenInfo, { Value = 1 })
+			tween:Play()
 		end,
-		function()
-			if tweenRef.current then
-				tweenRef.current:Cancel()
+
+		stop = function()
+			if tween then
+				tween:Cancel()
+				tween = nil
+			end
+		end,
+	}
+end
+
+local function useTween(initial: LinearValue.LinearValueType, tweenInfo: TweenInfo)
+	local current, setState = useState(initial)
+
+	local tweenRef = useRef()
+	local currentTweenRef = tweenRef.current
+
+	if not currentTweenRef then
+		currentTweenRef = makeTween(setState, initial, tweenInfo)
+		tweenRef.current = currentTweenRef
+	end
+
+	useEffect(function()
+		return function()
+			local currentTween = tweenRef.current
+			if currentTween then
+				currentTween:destroy()
 				tweenRef.current = nil
 			end
 		end
+	end, {})
+
+	return current, currentTweenRef.play, currentTweenRef.stop
 end
 
 return useTween

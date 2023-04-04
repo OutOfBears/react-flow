@@ -25,45 +25,51 @@ RunService:BindToRenderStep("UPDATE_REACT_SPRING", Enum.RenderPriority.First.Val
 	end
 end)
 
-local function useSpring(initial: LinearValue.LinearValueType, speed: number?, dampening: number?)
-	speed = speed or 20
-	dampening = dampening or 1
+local function makeSpring(
+	updateState: (any) -> (),
+	initial: LinearValue.LinearValueType,
+	speed: number?,
+	dampening: number?
+)
+	local springValue = SpringValue.new(initial, speed, dampening)
 
-	local spring = useMemo(function()
-		return SpringValue.new(initial, speed, dampening)
-	end, {})
-
-	local state, setState = useState(initial)
-
-	useEffect(function()
-		return function()
-			SpringValues[spring] = nil
-		end
-	end, {})
-
-	return state,
-		function(animation: {
+	return {
+		play = function(animation: {
 			goal: LinearValue.LinearValueType?,
 			value: LinearValue.LinearValueType?,
 			force: LinearValue.LinearValueType?,
 		})
 			if animation.goal then
-				spring:SetGoal(animation.goal)
+				springValue:SetGoal(animation.goal)
 			end
 
 			if animation.value then
-				spring:SetValue(animation.value)
+				springValue:SetValue(animation.value)
 			end
 
 			if animation.force then
-				spring:Impulse(animation.force)
+				springValue:Impulse(animation.force)
 			end
 
-			SpringValues[spring] = setState
+			springValue:Run(updateState)
 		end,
-		function()
-			SpringValues[spring] = nil
-		end
+
+		stop = function()
+			springValue:Stop()
+		end,
+	}
+end
+
+local function useSpring(initial: LinearValue.LinearValueType, speed: number?, dampening: number?)
+	speed = speed or 20
+	dampening = dampening or 1
+
+	local state, setState = useState(initial)
+	local spring = useMemo(function()
+		return makeSpring(setState, initial, speed, dampening)
+	end, { initial, speed, dampening })
+
+	return state, spring.play, spring.stop
 end
 
 return useSpring
