@@ -1,7 +1,7 @@
 local Promise = require(script.Parent.Parent.Promise)
 
-local Roact = require(script.Parent.Parent.Roact)
-local useRef = Roact.useRef
+local React = require(script.Parent.Parent.React)
+local useRef = React.useRef
 
 export type AnimationProps = {
 	[string]: any,

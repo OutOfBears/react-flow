@@ -1,6 +1,6 @@
-local Roact = require(script.Parent.Parent.Roact)
-local useState = Roact.useState
-local useRef = Roact.useRef
+local React = require(script.Parent.Parent.React)
+local useState = React.useState
+local useRef = React.useRef
 
 local GroupAnimationController = {}
 GroupAnimationController.__index = GroupAnimationController

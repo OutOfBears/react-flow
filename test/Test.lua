@@ -1,11 +1,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Packages = ReplicatedStorage:WaitForChild("Packages")
 
-local Roact = require(Packages.Roact)
-local useEffect = Roact.useEffect
-local createElement = Roact.createElement
+local React = require(Packages.React)
+local useEffect = React.useEffect
+local createElement = React.createElement
 
-local ReactAnimation = require(Packages.RoactAnimation)
+local ReactAnimation = require(Packages.ReactAnimation)
 local useGroupAnimation = ReactAnimation.useGroupAnimation
 local useSequenceAnimation = ReactAnimation.useSequenceAnimation
 local useAnimation = ReactAnimation.useAnimation
