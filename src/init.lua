@@ -1,8 +1,10 @@
-return {
-	Animation = require(script.Animation),
+local Animations = require(script.Animations)
 
-	useLatest = require(script.Hooks.useLatest),
-	useSequence = require(script.Hooks.useSequence),
-	useSpring = require(script.Hooks.useSpring),
-	useTween = require(script.Hooks.useTween),
+return {
+	Tween = Animations.Tween,
+	Spring = Animations.Spring,
+
+	useAnimation = require(script.Hooks.useAnimation),
+	useGroupAnimation = require(script.Hooks.useGroupAnimation),
+	useSequenceAnimation = require(script.Hooks.useSequenceAnimation),
 }
