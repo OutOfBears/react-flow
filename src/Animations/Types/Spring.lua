@@ -11,8 +11,8 @@ export type Spring = typeof(Spring.new())
 export type SpringProperties = {
 	damper: number?,
 	speed: number?,
-	from: any,
-	to: any,
+	start: any,
+	target: any,
 }
 
 local Springs = {} :: {
@@ -31,7 +31,7 @@ function Spring.new(props: SpringProperties)
 	return self
 end
 
-function Spring:Play(from: any?)
+function Spring:Play(from: any?, force: Vector3?)
 	if self.playing then
 		self:Stop()
 	end
@@ -50,6 +50,10 @@ function Spring:Play(from: any?)
 		local newSpring = SpringValue.new(baseFromValue, self.props.speed, self.props.damper)
 
 		newSpring:SetGoal(baseToValue)
+		if force then
+			newSpring:Impulse(force)
+		end
+
 		Springs[newSpring] = {
 			resolve = resolve,
 			update = function()
