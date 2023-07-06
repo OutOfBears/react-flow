@@ -8,12 +8,13 @@ ReplicatedStorage.ReactAnimation.Parent = Packages
 local Test = require(script.Test)
 
 local React = require(Packages.React)
+local ReactRoblox = require(Packages.ReactRoblox)
 local createElement = React.createElement
-local mount = React.mount
 
 if not LocalPlayer.Character then
 	LocalPlayer.CharacterAdded:Wait()
 	task.wait(4)
 end
 
-mount(createElement("ScreenGui", {}, { Test = createElement(Test) }), LocalPlayer:WaitForChild("PlayerGui"))
+local root = ReactRoblox.createRoot(LocalPlayer:WaitForChild("PlayerGui"))
+root:render(createElement("ScreenGui", {}, { Test = createElement(Test) }))

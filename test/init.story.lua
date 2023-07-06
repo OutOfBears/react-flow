@@ -2,18 +2,19 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Packages = ReplicatedStorage.Packages
 
 local React = require(Packages.React)
+local ReactRoblox = require(Packages.ReactRoblox)
 local createElement = React.createElement
-local mount, unmount = React.mount, React.unmount
 
 return function(container)
 	local ReactAnimation = ReplicatedStorage.ReactAnimation
 	ReactAnimation.Parent = Packages
 
 	local Test = require(script.Parent.Test)
-	local root = mount(createElement(Test), container)
+	local root = ReactRoblox.createRoot(container)
+	root:render(createElement(Test))
 
 	return function()
-		unmount(root)
 		ReactAnimation.Parent = ReplicatedStorage
+		root:unmount()
 	end
 end
