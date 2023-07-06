@@ -8,7 +8,10 @@ local createElement = React.createElement
 local ReactAnimation = require(Packages.ReactAnimation)
 local useGroupAnimation = ReactAnimation.useGroupAnimation
 local useSequenceAnimation = ReactAnimation.useSequenceAnimation
-local useAnimation = ReactAnimation.useAnimation
+local useSpring = ReactAnimation.useSpring
+local useTween = ReactAnimation.useTween
+local useBindings = ReactAnimation.useBindings
+-- local useAnimation = ReactAnimation.useAnimation
 -- local Spring = ReactAnimation.Spring
 local Tween = ReactAnimation.Tween
 
@@ -119,58 +122,71 @@ local function TestSequence()
 end
 
 -- -- @TestTween
--- local function TestTween()
--- 	local value, update = useTween(UDim2.fromScale(0, 0), TweenInfo.new(1))
--- 	local value2, update2 = useTween(Color3.new(), TweenInfo.new(1))
+local function TestTween()
+	local value, update = useTween({
+		info = TweenInfo.new(1),
+		start = UDim2.fromScale(0, 0),
+	})
 
--- 	if value.X.Scale == 0 then
--- 		update({ goal = UDim2.fromScale(1, 0) })
--- 	elseif (value :: UDim2).X.Scale == 1 then
--- 		update({ goal = UDim2.fromScale(0, 0) })
--- 	end
+	local value2, update2 = useTween({
+		info = TweenInfo.new(1),
+		start = Color3.new(),
+	})
 
--- 	if value2.R == 0 then
--- 		update2({ start = Color3.new(1, 0, 0), goal = Color3.new(1, 0, 0) })
--- 	elseif value2.R == 1 then
--- 		update2({ goal = Color3.new(0, 0, 0) })
--- 	end
+	useBindings(function(v, v2)
+		if v.X.Scale == 0 then
+			update({ target = UDim2.fromScale(1, 0) })
+		elseif (v :: UDim2).X.Scale == 1 then
+			update({ target = UDim2.fromScale(0, 0) })
+		end
 
--- 	return createFrame({
--- 		Name = "Tween",
--- 		Position = value,
--- 		BackgroundColor3 = value2,
--- 	})
--- end
+		if v2.R == 0 then
+			update2({ start = Color3.new(1, 0, 0), target = Color3.new(1, 0, 0) })
+		elseif v2.R == 1 then
+			update2({ target = Color3.new(0, 0, 0) })
+		end
+	end, { value, value2 })
+
+	return createFrame({
+		Name = "Tween",
+		Position = value,
+		BackgroundColor3 = value2,
+	})
+end
 
 -- -- @TestSpring
--- local function TestSpring()
--- 	local value, update = useSpring(UDim2.fromScale(-1, 0), 10, 0.5)
+local function TestSpring()
+	local value, update = useSpring({
+		start = UDim2.fromScale(0, 0),
+		speed = 5,
+		damper = 0.7,
+	})
 
--- 	useEffect(function()
--- 		local running = true
+	useEffect(function()
+		local running = true
 
--- 		task.spawn(function()
--- 			while running do
--- 				update({ goal = UDim2.fromScale(1, 0) })
--- 				task.wait(3)
+		task.spawn(function()
+			while running do
+				update({ target = UDim2.fromScale(1, 0) })
+				task.wait(3)
 
--- 				if running then
--- 					update({ goal = UDim2.fromScale(-1, 0) })
--- 					task.wait(3)
--- 				end
--- 			end
--- 		end)
+				if running then
+					update({ target = UDim2.fromScale(-1, 0) })
+					task.wait(3)
+				end
+			end
+		end)
 
--- 		return function()
--- 			running = false
--- 		end
--- 	end, {})
+		return function()
+			running = false
+		end
+	end, {})
 
--- 	return createFrame({
--- 		Name = "Spring",
--- 		Position = value,
--- 	})
--- end
+	return createFrame({
+		Name = "Spring",
+		Position = value,
+	})
+end
 
 -- @entry
 local function Test()
@@ -183,9 +199,9 @@ local function Test()
 			VerticalAlignment = Enum.VerticalAlignment.Center,
 		}),
 
-		-- tween = createElement(TestTween),
-		-- spring = createElement(TestSpring),
-		sequence = createElement(TestSequence),
+		tween = createElement(TestTween),
+		spring = createElement(TestSpring),
+		-- sequence = createElement(TestSequence),
 	})
 end
 
