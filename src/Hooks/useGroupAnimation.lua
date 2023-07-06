@@ -1,5 +1,5 @@
 local React = require(script.Parent.Parent.React)
-local useState = React.useState
+local useBinding = React.useBinding
 local useRef = React.useRef
 
 local GroupAnimationController = {}
@@ -71,10 +71,10 @@ local function getStateContainer(defaults: DefaultProperties)
 	local values = {}
 
 	for name, value in defaults do
-		local state, setState = useState(value)
+		local binding, updateBinding = useBinding(value)
 
-		setters[name] = setState
-		values[name] = state
+		setters[name] = updateBinding
+		values[name] = binding
 	end
 
 	return setters, values
