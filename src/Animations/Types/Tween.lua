@@ -8,9 +8,12 @@ local Tween = {}
 Tween.__index = Tween
 
 export type Tween = typeof(Tween.new())
-export type TweenProperties = {
-	from: any,
-	to: any,
+export type TweenProperties<T> = {
+	info: TweenInfo,
+	start: T,
+	target: T,
+	immediate: boolean?,
+	delay: number?,
 }
 
 local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> nil)
@@ -37,7 +40,7 @@ local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> 
 	end
 end
 
-function Tween.new(props: TweenProperties)
+function Tween.new<T>(props: TweenProperties<T>)
 	local self = setmetatable(BaseAnimation.new(), Tween) :: Tween
 
 	self.props = props
