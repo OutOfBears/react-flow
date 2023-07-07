@@ -4,13 +4,6 @@ local createBinding = React.createBinding
 
 local Spring = require(script.Parent.Parent.Animations.Types.Spring)
 
-local function makeSpring(props: Spring.SpringProperties, updater: (any) -> nil)
-	local newSpring = Spring.new(props)
-	newSpring:SetListener(updater)
-
-	return newSpring
-end
-
 local function useSpring(props: Spring.SpringProperties)
 	local controller = useRef()
 	local spring = controller.current
@@ -18,8 +11,11 @@ local function useSpring(props: Spring.SpringProperties)
 	local binding, update = createBinding(props.start)
 
 	if not spring then
-		local newController = makeSpring(props, update)
+		local newController = Spring.new(props)
+
 		spring = {
+			controller = newController,
+
 			start = function(subProps: Spring.SpringProperties)
 				newController.props.target = subProps.target or newController.props.target
 				newController.props.speed = subProps.speed or newController.props.speed
@@ -34,6 +30,8 @@ local function useSpring(props: Spring.SpringProperties)
 
 		controller.current = spring
 	end
+
+	spring.controller:SetListener(update)
 
 	return binding, spring.start, spring.stop
 end

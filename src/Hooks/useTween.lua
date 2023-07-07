@@ -4,13 +4,6 @@ local createBinding = React.createBinding
 
 local Tween = require(script.Parent.Parent.Animations.Types.Tween)
 
-local function makeTween<T>(props: Tween.TweenProperties<T>, updater: (any) -> nil)
-	local newSpring = Tween.new(props)
-	newSpring:SetListener(updater)
-
-	return newSpring
-end
-
 local function useTween<T>(props: Tween.TweenProperties<T>)
 	local controller = useRef()
 	local tween = controller.current
@@ -18,9 +11,11 @@ local function useTween<T>(props: Tween.TweenProperties<T>)
 	local binding, update = createBinding(props.start)
 
 	if not tween then
-		local newController = makeTween(props, update)
+		local newController = Tween.new(props)
 
 		tween = {
+			controller = newController,
+
 			start = function(subProps: Tween.TweenProperties<T>)
 				newController.props.info = subProps.info or newController.props.info
 				newController.props.start = subProps.start or newController.props.start
@@ -37,6 +32,8 @@ local function useTween<T>(props: Tween.TweenProperties<T>)
 
 		controller.current = tween
 	end
+
+	tween.controller:SetListener(update)
 
 	return binding, tween.start, tween.stop
 end
