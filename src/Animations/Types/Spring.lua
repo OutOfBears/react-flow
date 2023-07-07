@@ -1,5 +1,3 @@
-local RunService = game:GetService("RunService")
-
 local BaseAnimation = require(script.Parent.Parent.Base)
 local Promise = require(script.Parent.Parent.Parent.Promise)
 local SpringValue = require(script.Parent.Parent.Parent.Utility.SpringValue)
@@ -13,13 +11,6 @@ export type SpringProperties = {
 	speed: number?,
 	start: any,
 	target: any,
-}
-
-local Springs = {} :: {
-	[Spring]: {
-		completed: () -> nil,
-		resolve: () -> (),
-	},
 }
 
 function Spring.new(props: SpringProperties)
@@ -46,27 +37,17 @@ function Spring:Play(from: any?, force: Vector3?)
 		return Promise.resolve()
 	end
 
-	local animation = Promise.new(function(resolve, _, onCancel)
-		local newSpring = SpringValue.new(baseFromValue, self.props.speed, self.props.damper)
+	local newSpring = SpringValue.new(baseFromValue, self.props.speed, self.props.damper)
+	newSpring:SetGoal(baseToValue)
 
-		newSpring:SetGoal(baseToValue)
-		if force then
-			newSpring:Impulse(force)
+	if force then
+		newSpring:Impulse(force)
+	end
+
+	local animation = newSpring:Run(function()
+		if self.listener then
+			self.listener(newSpring:GetValue())
 		end
-
-		Springs[newSpring] = {
-			resolve = resolve,
-			update = function()
-				if self.listener then
-					self.listener(newSpring:GetValue())
-				end
-			end,
-		}
-
-		onCancel(function()
-			Springs[newSpring] = nil
-			resolve()
-		end)
 	end)
 
 	self.playing = true
@@ -87,17 +68,5 @@ function Spring:Stop()
 
 	self.playing = false
 end
-
-RunService:BindToRenderStep("UPDATE_REACT_SPRINGS", Enum.RenderPriority.First.Value, function(dt: number)
-	for spring, data in Springs do
-		local didUpdate = spring:Update(dt)
-		data.update()
-
-		if not didUpdate then
-			Springs[spring] = nil
-			data.resolve()
-		end
-	end
-end)
 
 return Spring
