@@ -71,6 +71,7 @@ function SpringValue:Update(dt: number)
 	end
 
 	self._current = LinearValue.new(self._current._ccstr, unpack(newValues))
+
 	return updated
 end
 
@@ -83,7 +84,11 @@ function SpringValue:Stop()
 end
 
 function SpringValue:Run(update: () -> ())
-	return Promise.new(function(resolve)
+	return Promise.new(function(resolve, _, onCancel)
+		onCancel(function()
+			self:Stop()
+		end)
+
 		update(self:GetValue())
 		SpringValues[self] = { update, resolve }
 	end)
