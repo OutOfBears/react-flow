@@ -1,6 +1,6 @@
 local React = require(script.Parent.Parent.React)
 local useRef = React.useRef
-local createBinding = React.createBinding
+local useBinding = React.useBinding
 
 local Tween = require(script.Parent.Parent.Animations.Types.Tween)
 
@@ -8,7 +8,7 @@ local function useTween<T>(props: Tween.TweenProperties<T>)
 	local controller = useRef()
 	local tween = controller.current
 
-	local binding, update = createBinding(props.start)
+	local binding, update = useBinding(props.start)
 
 	if not tween then
 		local newController = Tween.new(props)

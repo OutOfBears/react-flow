@@ -1,6 +1,6 @@
 local React = require(script.Parent.Parent.React)
 local useRef = React.useRef
-local createBinding = React.createBinding
+local useBinding = React.useBinding
 
 local SpringValue = require(script.Parent.Parent.Utility.SpringValue)
 local Spring = require(script.Parent.Parent.Animations.Types.Spring)
@@ -9,7 +9,7 @@ local function useSpring(props: Spring.SpringProperties)
 	local controller = useRef()
 	local spring = controller.current
 
-	local binding, update = createBinding(props.start)
+	local binding, update = useBinding(props.start)
 
 	if not spring then
 		local newController = SpringValue.new(props.start, props.speed, props.damper)
