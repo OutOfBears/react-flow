@@ -55,7 +55,7 @@ function Tween:Play(from: any?)
 	end
 
 	local tweenInfo = self.props.info :: TweenInfo
-	local baseFromValue = from or self.props.start :: any
+	local baseFromValue = self.props.start or from :: any
 	local baseToValue = self.props.target :: any
 
 	-- start immediately will start the tween but not update the listener
@@ -78,7 +78,7 @@ function Tween:Play(from: any?)
 	assert(tweenInfo.Reverses == false, "Reverses must be false")
 	assert(tweenInfo.DelayTime == 0, "DelayTime must be 0")
 
-	if from == baseToValue then
+	if baseFromValue == baseToValue then
 		return Promise.resolve()
 	end
 
