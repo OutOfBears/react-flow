@@ -56,6 +56,7 @@ function Sequence:Play(fromProps: SequenceProps)
 
 	local animation = Promise.new(function(resolve, _, onCancel)
 		local promises = {}
+		local playing = {}
 
 		for _, sequenced in self.animation do
 			local animationPromise = Promise.delay(sequenced.timestamp):andThen(function()
@@ -66,7 +67,14 @@ function Sequence:Play(fromProps: SequenceProps)
 						continue
 					end
 
-					table.insert(allAnimatables, animatable:Play(fromProps[name]))
+					if playing[name] then
+						playing[name]:cancel()
+					end
+
+					local promise = animatable:Play(fromProps[name])
+					playing[name] = promise
+
+					table.insert(allAnimatables, promise)
 				end
 
 				return Promise.all(allAnimatables)
