@@ -34,6 +34,10 @@ function SpringValue:Impulse(impulse: LinearValue.LinearValueType)
 	end
 end
 
+function SpringValue:GetVelocity()
+	return LinearValue.new(self._current._ccstr, unpack(self._velocities)):ToValue()
+end
+
 function SpringValue:SetGoal(goal: LinearValue.LinearValueType)
 	self._goal = LinearValue.fromValue(goal)
 end
@@ -100,7 +104,7 @@ function SpringValue:Stop()
 	local value = SpringValues[self]
 	if value then
 		SpringValues[self] = nil
-		value[2]()
+		value()
 	end
 end
 

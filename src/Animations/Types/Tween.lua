@@ -70,8 +70,8 @@ function Tween:Play(from: any?)
 		end
 	end
 
-	assert(baseFromValue, "No from value provided")
-	assert(baseToValue, "No to value provided")
+	assert(baseFromValue, "No start value provided")
+	assert(baseToValue, "No target value provided")
 
 	assert(tweenInfo, "No tween info provided")
 	assert(tweenInfo.RepeatCount == 0, "RepeatCount must be 0")
