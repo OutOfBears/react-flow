@@ -10,9 +10,9 @@ Tween.__index = Tween
 export type Tween = typeof(Tween.new())
 export type TweenProperties<T> = {
 	info: TweenInfo,
+	startImmediate: T?,
 	start: T,
 	target: T,
-	immediate: boolean?,
 	delay: number?,
 }
 
@@ -33,6 +33,7 @@ local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> 
 	end)
 
 	return function()
+		callback(0)
 		tween:Play()
 	end, function()
 		numberValue:Destroy()
@@ -55,18 +56,18 @@ function Tween:Play(from: any?)
 	end
 
 	local tweenInfo = self.props.info :: TweenInfo
-	local baseFromValue = self.props.start or from :: any
+	local baseFromValue = self.props.startImmediate or self.props.start or from :: any
 	local baseToValue = self.props.target :: any
 
 	-- start immediately will start the tween but not update the listener
-	local startImmediately = self.props.immediate == true
+	local startImmediately = self.props.startImmediate ~= nil
 	local delayTime = self.props.delay :: number
 
 	if not delayTime then
 		assert(startImmediately == false, "Cannot start immediately without a delay")
 	else
 		if startImmediately then
-			assert(delayTime < tweenInfo.Time, "DelayTime must be less than Time")
+			assert(delayTime > 0, "DelayTime must be greater than zero")
 		end
 	end
 
@@ -86,13 +87,7 @@ function Tween:Play(from: any?)
 	local toValue = LinearValue.fromValue(baseToValue)
 
 	local animation = Promise.new(function(resolve, _, onCancel)
-		local canUpdate = true
-
 		local play, cancel = playTween(tweenInfo, function(value)
-			if not canUpdate then
-				return
-			end
-
 			local newValue = fromValue:Lerp(toValue, value):ToValue()
 			self.listener(newValue)
 		end, function()
@@ -107,15 +102,11 @@ function Tween:Play(from: any?)
 			play()
 		else
 			if startImmediately then
-				canUpdate = false
-				play()
-
-				task.wait(delayTime)
-				canUpdate = true
-			else
-				task.wait(delayTime)
-				play()
+				self.listener(baseFromValue)
 			end
+
+			task.wait(delayTime)
+			play()
 		end
 	end)
 
