@@ -90,6 +90,8 @@ local function useGroupAnimation(props: GroupAnimation, default: DefaultProperti
 
 		current = {
 			play = function(newState: string)
+				assert(typeof(newState) == "string", "useGroupAnimation expects a string 'state'")
+
 				newController:Play(newState)
 			end,
 

@@ -17,6 +17,8 @@ local function useTween<T>(props: Tween.TweenProperties<T>)
 			controller = newController,
 
 			start = function(subProps: Tween.TweenProperties<T>)
+				assert(typeof(subProps) == "table", "useTween expects a table of properties")
+
 				newController.props.info = subProps.info or newController.props.info
 				newController.props.start = subProps.start or newController.props.start
 				newController.props.target = subProps.target or newController.props.target

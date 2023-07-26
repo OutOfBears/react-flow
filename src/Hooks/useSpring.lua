@@ -18,6 +18,8 @@ local function useSpring(props: Spring.SpringProperties)
 			controller = newController,
 
 			start = function(subProps: Spring.SpringProperties)
+				assert(typeof(subProps) == "table", "useSpring expects a table of properties")
+
 				if subProps.target then
 					newController:SetGoal(subProps.target)
 				end
