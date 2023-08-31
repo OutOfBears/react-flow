@@ -1,89 +1,43 @@
-local TweenService = game:GetService("TweenService")
+local React = require(script.Parent.Parent.React)
+local useRef = React.useRef
+local useBinding = React.useBinding
 
-local Roact = require(script.Parent.Parent.Roact)
-local useRef = Roact.useRef
-local useState = Roact.useState
-local useEffect = Roact.useEffect
+local Tween = require(script.Parent.Parent.Animations.Types.Tween)
 
-local LinearValue = require(script.Parent.Parent.Utility.LinearValue)
-type LinearValue = typeof(LinearValue)
+local function useTween<T>(props: Tween.TweenProperties<T>)
+	local controller = useRef()
+	local tween = controller.current
 
-local function makeTween(updateState: (any) -> (), initial: LinearValue.LinearValueType, tweenInfo: TweenInfo)
-	local start, goal, tween
-	local current = LinearValue.fromValue(initial)
+	local binding, update = useBinding(props.start)
 
-	local value = Instance.new("NumberValue")
-	value:GetPropertyChangedSignal("Value"):Connect(function()
-		current = start:Lerp(goal, value.Value)
-		updateState(current:ToValue())
-	end)
+	if not tween then
+		local newController = Tween.new(props)
 
-	return {
-		destroy = function()
-			value:Destroy()
-		end,
+		tween = {
+			controller = newController,
 
-		play = function(animation: {
-			start: LinearValue.LinearValueType?,
-			goal: LinearValue.LinearValueType?,
-		})
-			local startValue = animation.start
-			local endValue = animation.goal
+			start = function(subProps: Tween.TweenProperties<T>)
+				assert(typeof(subProps) == "table", "useTween expects a table of properties")
 
-			local currentValue = current:ToValue()
+				newController.props.info = subProps.info or newController.props.info
+				newController.props.start = subProps.start or binding:getValue()
+				newController.props.target = subProps.target or newController.props.target
+				newController.props.immediate = subProps.immediate or newController.props.immediate
+				newController.props.delay = subProps.delay or newController.props.delay
+				newController:Play(subProps.start or binding:getValue())
+			end,
 
-			if startValue == currentValue and endValue == currentValue then
-				return
-			end
+			stop = function()
+				newController:Stop()
+			end,
+		}
 
-			if not startValue then
-				startValue = currentValue
-			end
-
-			if tween then
-				tween:Cancel()
-			end
-
-			start = LinearValue.fromValue(startValue)
-			goal = LinearValue.fromValue(endValue)
-
-			value.Value = 0
-
-			tween = TweenService:Create(value, tweenInfo, { Value = 1 })
-			tween:Play()
-		end,
-
-		stop = function()
-			if tween then
-				tween:Cancel()
-				tween = nil
-			end
-		end,
-	}
-end
-
-local function useTween(initial: LinearValue.LinearValueType, tweenInfo: TweenInfo)
-	local current, setState = useState(initial)
-
-	local tweenRef = useRef()
-	local currentTweenRef = tweenRef.current
-
-	if not currentTweenRef then
-		currentTweenRef = makeTween(setState, initial, tweenInfo)
-		tweenRef.current = currentTweenRef
+		controller.current = tween
 	end
 
-	useEffect(function()
-		return function()
-			local currentTween = tweenRef.current
-			if currentTween then
-				currentTween:destroy()
-				tweenRef.current = nil
-			end
-		end
-	end, {})
+	tween.controller:SetListener(update)
 
-	return current, currentTweenRef.play, currentTweenRef.stop
+	return binding, tween.start, tween.stop
 end
 
 return useTween

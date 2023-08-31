@@ -18,6 +18,7 @@ function SpringValue.new(initial: LinearValue.LinearValueType, speed: number?, d
 		_velocities = {},
 		_speed = speed or 1,
 		_damper = damper or 1,
+		_updater = nil,
 	}, SpringValue)
 end
 
@@ -33,8 +34,28 @@ function SpringValue:Impulse(impulse: LinearValue.LinearValueType)
 	end
 end
 
+function SpringValue:GetVelocity()
+	return LinearValue.new(self._current._ccstr, unpack(self._velocities)):ToValue()
+end
+
 function SpringValue:SetGoal(goal: LinearValue.LinearValueType)
 	self._goal = LinearValue.fromValue(goal)
+end
+
+function SpringValue:SetSpeed(speed: number)
+	self._speed = speed
+end
+
+function SpringValue:SetDamper(damper: number)
+	self._damper = damper
+end
+
+function SpringValue:SetUpdater(updater: (any) -> ())
+	self._updater = updater
+
+	if self:Playing() and updater then
+		updater(self:GetValue())
+	end
 end
 
 function SpringValue:GetGoal()
@@ -71,21 +92,37 @@ function SpringValue:Update(dt: number)
 	end
 
 	self._current = LinearValue.new(self._current._ccstr, unpack(newValues))
+
 	return updated
+end
+
+function SpringValue:Playing()
+	return SpringValues[self] ~= nil
 end
 
 function SpringValue:Stop()
 	local value = SpringValues[self]
 	if value then
 		SpringValues[self] = nil
-		value[2]()
+		value()
 	end
 end
 
-function SpringValue:Run(update: () -> ())
-	return Promise.new(function(resolve)
-		update(self:GetValue())
-		SpringValues[self] = { update, resolve }
+function SpringValue:Run(update: () -> ()?)
+	if update then
+		self._updater = update
+	end
+
+	return Promise.new(function(resolve, _, onCancel)
+		onCancel(function()
+			self:Stop()
+		end)
+
+		if update then
+			update(self:GetValue())
+		end
+
+		SpringValues[self] = resolve
 	end)
 end
 
@@ -130,12 +167,13 @@ end
 
 RunService:UnbindFromRenderStep("UPDATE_SPRING_VALUES")
 RunService:BindToRenderStep("UPDATE_SPRING_VALUES", Enum.RenderPriority.First.Value, function(dt: number)
-	for spring, updates in pairs(SpringValues) do
+	for spring, resolve in pairs(SpringValues) do
 		local didUpdate = spring:Update(dt)
 		local value = spring:GetValue()
 
-		local update, resolve = unpack(updates)
-		update(value)
+		if spring._updater then
+			spring._updater(value)
+		end
 
 		if not didUpdate then
 			SpringValues[spring] = nil

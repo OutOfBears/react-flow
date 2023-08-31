@@ -1,75 +1,65 @@
-local RunService = game:GetService("RunService")
+local React = require(script.Parent.Parent.React)
+local useRef = React.useRef
+local useBinding = React.useBinding
 
-local Roact = require(script.Parent.Parent.Roact)
-local useEffect = Roact.useEffect
-local useState = Roact.useState
-local useMemo = Roact.useMemo
+local SpringValue = require(script.Parent.Parent.Utility.SpringValue)
+local Spring = require(script.Parent.Parent.Animations.Types.Spring)
 
-local Utility = script.Parent.Parent.Utility
-local LinearValue = require(Utility.LinearValue)
-local SpringValue = require(Utility.SpringValue)
-local SpringValues = {}
+local function useSpring(props: Spring.SpringProperties)
+	local controller = useRef()
+	local spring = controller.current
 
-RunService:UnbindFromRenderStep("UPDATE_REACT_SPRING")
-RunService:BindToRenderStep("UPDATE_REACT_SPRING", Enum.RenderPriority.First.Value, function(dt: number)
-	for spring, setValue in pairs(SpringValues) do
-		local didUpdate = spring:Update(dt)
-		local updatedValue = spring:GetValue()
+	local binding, update = useBinding(props.start)
 
-		if not didUpdate then
-			SpringValues[spring] = nil
-			updatedValue = spring:GetGoal()
-		end
+	if not spring then
+		local newController = SpringValue.new(props.start, props.speed, props.damper)
 
-		setValue(updatedValue)
+		spring = {
+			controller = newController,
+
+			start = function(subProps: Spring.SpringProperties)
+				assert(typeof(subProps) == "table", "useSpring expects a table of properties")
+
+				if subProps.target then
+					newController:SetGoal(subProps.target)
+				end
+
+				if subProps.start then
+					newController:SetValue(subProps.start)
+				end
+
+				if subProps.force then
+					newController:Impulse(subProps.force)
+				end
+
+				if subProps.damper then
+					newController:SetDamper(subProps.damper)
+				end
+
+				if subProps.speed then
+					newController:SetSpeed(subProps.speed)
+				end
+
+				if subProps.target or subProps.start or subProps.force then
+					if not newController:Playing() then
+						newController:Run()
+					end
+				end
+			end,
+
+			stop = function()
+				if newController:Playing() then
+					newController:Stop()
+				end
+			end,
+		}
+
+		controller.current = spring
 	end
-end)
 
-local function makeSpring(
-	updateState: (any) -> (),
-	initial: LinearValue.LinearValueType,
-	speed: number?,
-	dampening: number?
-)
-	local springValue = SpringValue.new(initial, speed, dampening)
+	spring.controller:SetUpdater(update)
 
-	return {
-		play = function(animation: {
-			goal: LinearValue.LinearValueType?,
-			value: LinearValue.LinearValueType?,
-			force: LinearValue.LinearValueType?,
-		})
-			if animation.goal then
-				springValue:SetGoal(animation.goal)
-			end
-
-			if animation.value then
-				springValue:SetValue(animation.value)
-			end
-
-			if animation.force then
-				springValue:Impulse(animation.force)
-			end
-
-			springValue:Run(updateState)
-		end,
-
-		stop = function()
-			springValue:Stop()
-		end,
-	}
-end
-
-local function useSpring(initial: LinearValue.LinearValueType, speed: number?, dampening: number?)
-	speed = speed or 20
-	dampening = dampening or 1
-
-	local state, setState = useState(initial)
-	local spring = useMemo(function()
-		return makeSpring(setState, initial, speed, dampening)
-	end, { initial, speed, dampening })
-
-	return state, spring.play, spring.stop
+	return binding, spring.start, spring.stop
 end
 
 return useSpring
