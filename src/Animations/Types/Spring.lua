@@ -41,9 +41,9 @@ function Spring:Play(from: any?)
 	local newSpring = SpringValue.new(baseFromValue, self.props.speed, self.props.damper)
 	newSpring:SetGoal(baseToValue)
 
-	local velocity = self._oldSpring:GetVelocity()
-	if self._oldSpring and velocity then
-		newSpring:Impulse(velocity)
+	local oldVelocity = self._oldSpring and self._oldSpring:GetVelocity()
+	if oldVelocity then
+		newSpring:Impulse(oldVelocity)
 	end
 
 	if force then
