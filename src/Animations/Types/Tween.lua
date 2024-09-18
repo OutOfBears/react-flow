@@ -27,7 +27,7 @@ local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> 
 		Value = 1,
 	})
 
-	tween.Completed:Connect(function()
+	tween.Completed:Once(function()
 		numberValue:Destroy()
 		completed()
 	end)
