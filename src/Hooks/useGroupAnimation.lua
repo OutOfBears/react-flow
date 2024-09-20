@@ -1,7 +1,6 @@
 local React = require(script.Parent.Parent.React)
 local useBinding = React.useBinding
 local useMemo = React.useMemo
-local useRef = React.useRef
 
 local GroupAnimationController = {}
 GroupAnimationController.__index = GroupAnimationController
@@ -86,14 +85,13 @@ local function getStateContainer(defaults: DefaultProperties)
 end
 
 local function useGroupAnimation(props: GroupAnimation, default: DefaultProperties)
-	local defaults = useRef()
-	if not defaults.current then
-		defaults.current = default
-	end
+	local defaults = useMemo(function()
+		return default
+	end, {})
 
-	local setters, values = getStateContainer(defaults.current)
+	local setters, values = getStateContainer(defaults)
 	local controller = useMemo(function()
-		local newController = GroupAnimationController.new(props, default, setters)
+		local newController = GroupAnimationController.new(props, defaults, setters)
 
 		return {
 			updateSetters = function(newSetters: StateSetters)
