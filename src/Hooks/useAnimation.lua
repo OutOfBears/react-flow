@@ -1,7 +1,8 @@
 local Promise = require(script.Parent.Parent.Promise)
+local Animations = require(script.Parent.Parent.Animations)
 
 local React = require(script.Parent.Parent.React)
-local useRef = React.useRef
+local useMemo = React.useMemo
 
 export type AnimationProps = {
 	[string]: any,
@@ -12,12 +13,17 @@ Animation.__index = Animation
 
 function Animation.new(props: AnimationProps)
 	local self = setmetatable({}, Animation)
+	local animations = {}
+
+	for name, animation in props do
+		animations[name] = Animations.fromDefinition(animation)
+	end
 
 	self.playing = false
 	self.listener = nil
-	self.animation = props
+	self.animation = animations
 
-	for name, animation in props do
+	for name, animation in animations do
 		animation:SetListener(function(value)
 			if self.listener then
 				self.listener(name, value)
@@ -76,15 +82,9 @@ function Animation:Stop()
 end
 
 local function useAnimation(props: AnimationProps)
-	local animation = useRef()
-	local current = animation.current
-
-	if not current then
-		current = Animation.new(props)
-		animation.current = current
-	end
-
-	return current
+	return useMemo(function()
+		return Animation.new(props)
+	end, {})
 end
 
 return useAnimation

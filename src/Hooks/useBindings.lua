@@ -23,6 +23,10 @@ local function useBindings(callback: (any...) -> (), bindings: { any }, deps: { 
 					return
 				end
 
+				if typeof(newValue) ~= "table" and values[idx] == newValue then
+					return
+				end
+
 				values[idx] = newValue
 				callback(unpack(values))
 			end)

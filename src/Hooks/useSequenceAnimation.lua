@@ -1,7 +1,8 @@
 local Promise = require(script.Parent.Parent.Promise)
+local Animations = require(script.Parent.Parent.Animations)
 
 local React = require(script.Parent.Parent.React)
-local useRef = React.useRef
+local useMemo = React.useMemo
 
 export type SequenceProps = { { timestamp: number } | any }
 
@@ -10,18 +11,33 @@ Sequence.__index = Sequence
 
 function Sequence.new(props: SequenceProps)
 	local self = setmetatable({}, Sequence)
+	local animations = {}
+
+	for i, animation in props do
+		animations[i] = {
+			timestamp = animation.timestamp,
+		}
+
+		for name, animatable in animation do
+			if name == "timestamp" then
+				continue
+			end
+
+			animations[i][name] = Animations.fromDefinition(animatable)
+		end
+	end
 
 	self.playing = false
 	self.listener = nil
-	self.animation = props
+	self.animation = animations
 
-	table.sort(props, function(a, b)
+	table.sort(animations, function(a, b)
 		return a.timestamp < b.timestamp
 	end)
 
 	local lastTimestamp
 
-	for _, animation in props do
+	for _, animation in animations do
 		local timestamp = animation.timestamp
 		if lastTimestamp == timestamp then
 			error("Duplicate timestamp found in sequence")
@@ -114,15 +130,9 @@ function Sequence:Stop()
 end
 
 local function useSequenceAnimation(props: SequenceProps)
-	local animation = useRef()
-	local current = animation.current
-
-	if not current then
-		current = Sequence.new(props)
-		animation.current = current
-	end
-
-	return current
+	return useMemo(function()
+		return Sequence.new(props)
+	end, {})
 end
 
 return useSequenceAnimation

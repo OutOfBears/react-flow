@@ -3,6 +3,7 @@ local TweenService = game:GetService("TweenService")
 local BaseAnimation = require(script.Parent.Parent.Base)
 local Promise = require(script.Parent.Parent.Parent.Promise)
 local LinearValue = require(script.Parent.Parent.Parent.Utility.LinearValue)
+local Symbols = require(script.Parent.Parent.Symbols)
 
 local Tween = {}
 Tween.__index = Tween
@@ -39,6 +40,13 @@ local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> 
 		numberValue:Destroy()
 		tween:Cancel()
 	end
+end
+
+function Tween.definition<T>(props: TweenProperties<T>)
+	return {
+		[1] = Symbols.Tween,
+		[2] = props,
+	}
 end
 
 function Tween.new<T>(props: TweenProperties<T>)
