@@ -53,8 +53,10 @@ local function useSpring(props: Spring.SpringProperties)
 	end, {})
 
 	useEffect(function()
+		local spring = controller.spring
+
 		return function()
-			controller.spring:Destroy()
+			spring:Stop()
 		end
 	end, {})
 
