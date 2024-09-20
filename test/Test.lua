@@ -11,7 +11,7 @@ local useSequenceAnimation = ReactAnimation.useSequenceAnimation
 local useSpring = ReactAnimation.useSpring
 local useTween = ReactAnimation.useTween
 local useBindings = ReactAnimation.useBindings
-local useAnimation = ReactAnimation.useAnimation
+-- local useAnimation = ReactAnimation.useAnimation
 -- local Spring = ReactAnimation.Spring
 local Tween = ReactAnimation.Tween
 
@@ -38,73 +38,72 @@ end
 -- @tests
 -- @TestSequence
 local function TestSequence()
-	local sequence, play, stop = useGroupAnimation({
-		moveRight = useAnimation({
-			-- position = Spring({
-			-- 	target = UDim2.fromScale(0.8, 0),
-			-- 	speed = 5,
-			-- 	damper = 0.7,
-			-- }),
-
-			position = Tween({
-				target = UDim2.fromScale(0.8, 0),
-				info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
-			}),
-		}),
-
-		moveLeft = useAnimation({
-			-- position = Spring({
-			-- 	target = UDim2.fromScale(0.3, 0),
-			-- 	speed = 5,
-			-- 	damper = 0.7,
-			-- }),
-
-			position = Tween({
-				target = UDim2.fromScale(0.3, 0),
-				info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
-			}),
-		}),
-	}, {
-		position = UDim2.fromScale(0.5, 0),
-	})
-
 	-- local sequence, play, stop = useGroupAnimation({
-	-- 	yo = useSequenceAnimation({
-	-- 		{
-	-- 			timestamp = 0,
-	-- 			size = Tween({
-	-- 				target = UDim2.fromOffset(400, 400),
-	-- 				info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
-	-- 			}),
-	-- 		},
-	-- 		{
-	-- 			timestamp = 1,
-	-- 			position = Tween({
-	-- 				target = UDim2.fromScale(0.3, 0),
-	-- 				info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
-	-- 			}),
-	-- 		},
-	-- 		{
-	-- 			timestamp = 2,
-	-- 			position = Tween({
-	-- 				target = UDim2.fromScale(0.8, 0),
-	-- 				info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
-	-- 			}),
-	-- 		},
+	-- 	moveRight = useAnimation({
+	-- 		-- position = Spring({
+	-- 		-- 	target = UDim2.fromScale(0.8, 0),
+	-- 		-- 	speed = 5,
+	-- 		-- 	damper = 0.7,
+	-- 		-- }),
+
+	-- 		position = Tween({
+	-- 			target = UDim2.fromScale(0.8, 0),
+	-- 			info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
+	-- 		}),
+	-- 	}),
+
+	-- 	moveLeft = useAnimation({
+	-- 		-- position = Spring({
+	-- 		-- 	target = UDim2.fromScale(0.3, 0),
+	-- 		-- 	speed = 5,
+	-- 		-- 	damper = 0.7,
+	-- 		-- }),
+
+	-- 		position = Tween({
+	-- 			target = UDim2.fromScale(0.3, 0),
+	-- 			info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
+	-- 		}),
 	-- 	}),
 	-- }, {
 	-- 	position = UDim2.fromScale(0.5, 0),
-	-- 	size = UDim2.fromOffset(200, 200),
 	-- })
+
+	local sequence, play, stop = useGroupAnimation({
+		yo = useSequenceAnimation({
+			{
+				timestamp = 0,
+				size = Tween({
+					target = UDim2.fromOffset(400, 400),
+					info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
+				}),
+			},
+			{
+				timestamp = 1,
+				position = Tween({
+					target = UDim2.fromScale(0.3, 0),
+					info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
+				}),
+			},
+			{
+				timestamp = 2,
+				position = Tween({
+					target = UDim2.fromScale(0.8, 0),
+					info = TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
+				}),
+			},
+		}),
+	}, {
+		position = UDim2.fromScale(0.5, 0),
+		size = UDim2.fromOffset(200, 200),
+	})
 
 	useEffect(function()
 		local running = true
 
 		task.spawn(function()
 			while running do
-				play("moveRight")
+				play("yo")
 				task.wait(3)
-				play("moveLeft")
 			end
 		end)
 
