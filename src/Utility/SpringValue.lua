@@ -11,11 +11,16 @@ local EPSILON = 1e-2
 
 function SpringValue.new(initial: LinearValue.LinearValueType, speed: number?, damper: number?)
 	local target = LinearValue.fromValue(initial)
+	local velocity = {}
+
+	for i = 1, #target._value do
+		velocity[i] = 0
+	end
 
 	return setmetatable({
 		_current = target,
 		_goal = target,
-		_velocities = {},
+		_velocities = velocity,
 		_speed = speed or 1,
 		_damper = damper or 1,
 		_updater = nil,
