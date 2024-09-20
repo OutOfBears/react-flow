@@ -1,0 +1,12 @@
+{
+  "name": "react-flow",
+  "tree": {
+    "$className": "Model",
+    "ReactFlow": {
+      "$path": "src"
+    },
+    "Packages": {
+      "$path": "Packages"
+    }
+  }
+}

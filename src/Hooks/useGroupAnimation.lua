@@ -1,5 +1,6 @@
 local React = require(script.Parent.Parent.React)
 local useBinding = React.useBinding
+local useMemo = React.useMemo
 local useRef = React.useRef
 
 local GroupAnimationController = {}
@@ -27,18 +28,18 @@ function GroupAnimationController.new(props: GroupAnimation, default: DefaultPro
 
 	self.currentState = "Default"
 	self.animations = props
+
 	self.state = default
+	self.setters = setters
 
 	for state, animation in props do
 		animation:SetListener(function(name, value)
 			if self.currentState ~= state then
-				-- warn("IGNORED UPDATE:", state, name, value)
 				return
 			end
 
-			-- warn("UPDATE:", state, name, value)
 			self.state[name] = value
-			setters[name](value)
+			self.setters[name](value)
 		end)
 	end
 
@@ -66,6 +67,10 @@ function GroupAnimationController:Stop()
 	end
 end
 
+function GroupAnimationController:UpdateSetters(setters: StateSetters)
+	self.setters = setters
+end
+
 local function getStateContainer(defaults: DefaultProperties)
 	local setters = {}
 	local values = {}
@@ -81,14 +86,20 @@ local function getStateContainer(defaults: DefaultProperties)
 end
 
 local function useGroupAnimation(props: GroupAnimation, default: DefaultProperties)
-	local controller = useRef()
-	local current = controller.current
-	local setters, values = getStateContainer(default)
+	local defaults = useRef()
+	if not defaults.current then
+		defaults.current = default
+	end
 
-	if not current then
+	local setters, values = getStateContainer(defaults.current)
+	local controller = useMemo(function()
 		local newController = GroupAnimationController.new(props, default, setters)
 
-		current = {
+		return {
+			updateSetters = function(newSetters: StateSetters)
+				newController:UpdateSetters(newSetters)
+			end,
+
 			play = function(newState: string)
 				assert(typeof(newState) == "string", "useGroupAnimation expects a string 'state'")
 
@@ -99,11 +110,11 @@ local function useGroupAnimation(props: GroupAnimation, default: DefaultProperti
 				newController:Stop()
 			end,
 		}
+	end, {})
 
-		controller.current = current
-	end
+	controller.updateSetters(setters)
 
-	return values, current.play, current.stop
+	return values, controller.play, controller.stop
 end
 
 return useGroupAnimation

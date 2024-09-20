@@ -1,65 +1,66 @@
-local React = require(script.Parent.Parent.React)
-local useRef = React.useRef
-local useBinding = React.useBinding
-
 local SpringValue = require(script.Parent.Parent.Utility.SpringValue)
 local Spring = require(script.Parent.Parent.Animations.Types.Spring)
 
+local React = require(script.Parent.Parent.React)
+local useBinding = React.useBinding
+local useMemo = React.useMemo
+local useEffect = React.useEffect
+
 local function useSpring(props: Spring.SpringProperties)
-	local controller = useRef()
-	local spring = controller.current
-
 	local binding, update = useBinding(props.start)
+	local controller = useMemo(function()
+		local spring = SpringValue.new(props.start, props.speed, props.damper)
 
-	if not spring then
-		local newController = SpringValue.new(props.start, props.speed, props.damper)
-
-		spring = {
-			controller = newController,
+		return {
+			spring = spring,
 
 			start = function(subProps: Spring.SpringProperties)
 				assert(typeof(subProps) == "table", "useSpring expects a table of properties")
 
 				if subProps.target then
-					newController:SetGoal(subProps.target)
+					spring:SetGoal(subProps.target)
 				end
 
 				if subProps.start then
-					newController:SetValue(subProps.start)
+					spring:SetValue(subProps.start)
 				end
 
 				if subProps.force then
-					newController:Impulse(subProps.force)
+					spring:Impulse(subProps.force)
 				end
 
 				if subProps.damper then
-					newController:SetDamper(subProps.damper)
+					spring:SetDamper(subProps.damper)
 				end
 
 				if subProps.speed then
-					newController:SetSpeed(subProps.speed)
+					spring:SetSpeed(subProps.speed)
 				end
 
 				if subProps.target or subProps.start or subProps.force then
-					if not newController:Playing() then
-						newController:Run()
+					if not spring:Playing() then
+						spring:Run()
 					end
 				end
 			end,
 
 			stop = function()
-				if newController:Playing() then
-					newController:Stop()
+				if spring:Playing() then
+					spring:Stop()
 				end
 			end,
 		}
+	end, {})
 
-		controller.current = spring
-	end
+	useEffect(function()
+		return function()
+			controller.spring:Destroy()
+		end
+	end, {})
 
-	spring.controller:SetUpdater(update)
+	controller.spring:SetUpdater(update)
 
-	return binding, spring.start, spring.stop
+	return binding, controller.start, controller.stop
 end
 
 return useSpring

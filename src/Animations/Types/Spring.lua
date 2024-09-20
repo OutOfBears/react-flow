@@ -1,6 +1,7 @@
 local BaseAnimation = require(script.Parent.Parent.Base)
 local Promise = require(script.Parent.Parent.Parent.Promise)
 local SpringValue = require(script.Parent.Parent.Parent.Utility.SpringValue)
+local Symbols = require(script.Parent.Parent.Symbols)
 
 local Spring = {}
 Spring.__index = Spring
@@ -12,6 +13,13 @@ export type SpringProperties = {
 	start: any,
 	target: any,
 }
+
+function Spring.definition(props: SpringProperties)
+	return {
+		[1] = Symbols.Spring,
+		[2] = props,
+	}
+end
 
 function Spring.new(props: SpringProperties)
 	local self = setmetatable(BaseAnimation.new(), Spring) :: Spring
@@ -48,6 +56,10 @@ function Spring:Play(from: any?)
 
 	if force then
 		newSpring:Impulse(force)
+	end
+
+	if self._oldSpring then
+		self._oldSpring:Destroy()
 	end
 
 	local animation = newSpring:Run(function()

@@ -1,8 +1,8 @@
 local Animations = require(script.Animations)
 
 return {
-	Tween = Animations.Tween,
-	Spring = Animations.Spring,
+	Tween = Animations.Tween.definition,
+	Spring = Animations.Spring.definition,
 
 	useAnimation = require(script.Hooks.useAnimation),
 	useGroupAnimation = require(script.Hooks.useGroupAnimation),
