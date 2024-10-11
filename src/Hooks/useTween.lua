@@ -1,7 +1,8 @@
 local Tween = require(script.Parent.Parent.Animations.Types.Tween)
-
 local React = require(script.Parent.Parent.React)
+
 local useMemo = React.useMemo
+local useEffect = React.useEffect
 local useBinding = React.useBinding
 
 local function useTween<T>(props: Tween.TweenProperties<T>)
@@ -28,6 +29,12 @@ local function useTween<T>(props: Tween.TweenProperties<T>)
 				tween:Stop()
 			end,
 		}
+	end, {})
+
+	useEffect(function()
+		return function()
+			controller.stop()
+		end
 	end, {})
 
 	controller.tween:SetListener(update)
