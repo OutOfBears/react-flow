@@ -9,6 +9,6 @@ repository = "https://github.com/outofbears/react-flow"
 realm = "shared"
 
 [dependencies]
-React = "core-packages/react@17.0.1-rc.18"
-ReactRoblox = "core-packages/react-roblox@17.0.1-rc.16"
+React = "jsdotlua/react@17.2.1"
+ReactRoblox = "jsdotlua/react-roblox@17.2.1"
 Promise = "evaera/promise@4.0.0"
