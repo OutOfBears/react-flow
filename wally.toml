@@ -1,12 +1,14 @@
 [package]
-name = "nexure/react-animation"
-version = "0.1.1"
+name = "outofbears/react-flow"
+description = "React Animation Library for Roblox"
+version = "0.1.2"
+authors = ["Jack Fox <jack@infernal.io>"]
+homepage = "https://github.com/outofbears/react-flow"
 registry = "https://github.com/UpliftGames/wally-index"
+repository = "https://github.com/outofbears/react-flow"
 realm = "shared"
 
 [dependencies]
-
 React = "core-packages/react@17.0.1-rc.18"
 ReactRoblox = "core-packages/react-roblox@17.0.1-rc.16"
 Promise = "evaera/promise@4.0.0"
-
