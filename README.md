@@ -228,8 +228,15 @@ React-Flow supports animating the following userdata and native types:
 
 ## 🎬 Showcase
 
-<!-- ### Physics-Based Interactions  
-*[Placeholder for GIF of spring physics animations]* -->
+<p align="center">
+    <span style="font-size: 1.5em; font-weight: 500">Round Control Interface</span>
+    <img src="https://i.imgur.com/y1On24b.gif" alt="RoundControl" style="width: 500px; display: block" />
+</p>
+
+<p align="center">
+    <span style="font-size: 1.5em; font-weight: 500">Tower Upgrade Interface</span>
+    <img src="https://i.imgur.com/tdhyG9f.gif" alt="TowerUpgrade" style="width: 500px; display: block"/>
+</p>
 
 ## 💖 Contribution
 
