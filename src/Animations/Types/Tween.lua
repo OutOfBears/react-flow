@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local BaseAnimation = require(script.Parent.Parent.Base)
@@ -8,6 +9,8 @@ local Symbols = require(script.Parent.Parent.Symbols)
 local Tween = {}
 Tween.__index = Tween
 
+type Callback<T> = (T) -> ()
+
 export type Tween = typeof(Tween.new())
 export type TweenProperties<T> = {
 	info: TweenInfo,
@@ -16,6 +19,33 @@ export type TweenProperties<T> = {
 	target: T,
 	delay: number?,
 }
+
+local callbacks = {}
+local function pooledUpdate(callback: Callback<number>): () -> ()
+	local empty = next(callbacks) == nil
+
+	callbacks[callback] = true
+
+	if empty then
+		local connection
+		connection = RunService.RenderStepped:Connect(function(dt)
+			local ran = false
+
+			for nextCallback in callbacks do
+				ran = true
+				nextCallback(dt)
+			end
+
+			if not ran then
+				connection:Disconnect()
+			end
+		end)
+	end
+
+	return function()
+		callbacks[callback] = nil
+	end
+end
 
 local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> nil)
 	local numberValue = Instance.new("NumberValue")
@@ -40,6 +70,64 @@ local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> 
 		numberValue:Destroy()
 		tween:Cancel()
 	end
+end
+
+local function playTween2(tweenInfo: TweenInfo, callback: Callback<number>, completed: Callback<unknown>)
+	local disconnect
+
+	local repeats = 0
+	local elapsed = 0
+
+	local tweenTime = tweenInfo.Time
+	local tweenDelay = tweenInfo.DelayTime
+
+	local tweenRepeatCount = tweenInfo.RepeatCount
+	local tweenReverses = tweenInfo.Reverses
+
+	local tweenEasing = tweenInfo.EasingStyle
+	local tweenDirection = tweenInfo.EasingDirection
+
+	assert(tweenReverses == false, "Tween reverses is not supported")
+
+	local function stop()
+		if disconnect then
+			disconnect()
+			disconnect = nil
+		end
+	end
+
+	local function play()
+		elapsed = 0
+		repeats = 0
+
+		if tweenDelay and tweenDelay > 0 then
+			elapsed = -tweenDelay
+		end
+
+		if not disconnect then
+			disconnect = pooledUpdate(function(dt)
+				elapsed += dt
+
+				local alpha = math.clamp(elapsed / tweenTime, 0, 1)
+				local value = TweenService:GetValue(alpha, tweenEasing, tweenDirection)
+
+				callback(value)
+
+				if value >= 1 then
+					if tweenRepeatCount ~= 0 and repeats < tweenRepeatCount then
+						repeats += 1
+						elapsed = 0
+						return
+					end
+
+					stop()
+					completed()
+				end
+			end)
+		end
+	end
+
+	return play, stop
 end
 
 function Tween.definition<T>(props: TweenProperties<T>)
@@ -95,7 +183,7 @@ function Tween:Play(from: any?)
 	local toValue = LinearValue.fromValue(baseToValue)
 
 	local animation = Promise.new(function(resolve, _, onCancel)
-		local play, cancel = playTween(tweenInfo, function(value)
+		local play, cancel = playTween2(tweenInfo, function(value)
 			local newValue = fromValue:Lerp(toValue, value):ToValue()
 			self.listener(newValue)
 		end, function()
