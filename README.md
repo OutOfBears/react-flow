@@ -56,7 +56,7 @@ local ReactFlow = require(ReplicatedStorage.Packages.ReactFlow)
 
 ## 🔧 Hooks
 
-### useSpring
+### `useSpring`
 
 Creates spring-based physics animations with React bindings. Springs provide natural, bouncy motion that reacts to changes dynamically.
 
@@ -99,7 +99,7 @@ return createElement("Frame", {
 
 ---
 
-### useTween
+### `useTween`
 
 Creates tween-based animations that follow a specific timing curve. Ideal for animations that need precise timing or easing effects.
 
@@ -146,7 +146,7 @@ return createElement("Frame", {
 
 ---
 
-### useGroupAnimation
+### `useGroupAnimation`
 
 Creates a group of animations that are managed together as a single entity. With `useGroupAnimation`, you can define multiple animation states by combining the following animation primitives: `useAnimation`, `useSpringAnimation`, `useSequenceAnimation`, and `useTweenAnimation`. This allows you to define complex animation states and switch between them seamlessly at runtime, providing an elegant way to handle UI state transitions.
 
