@@ -2,6 +2,21 @@
 
 A blazing fast animation library for React-Lua interfaces, providing stateful animations with unrestricted flexibility and performance. React-Flow delivers a powerful animation system built specifically for React's component-based architecture, allowing developers to create fluid, responsive UI animations with minimal effort.
 
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Installation](#-installation)
+  - [Using Wally](#using-wally-recommended)
+  - [Manual Installation](#manual-installation)
+  - [Requiring the Module](#requiring-the-module)
+- [Hooks](#-hooks)
+  - [useSpring](#usespring)
+  - [useTween](#usetween)
+  - [useGroupAnimation](#usegroupanimation)
+- [Supported Value Types](#-supported-value-types)
+- [Showcase](#-showcase)
+- [License](#-license)
+
 ## ✨ Features
 
 - 🔄 **Stateful Animations** - Animations that automatically respond to your component's state changes, ensuring UI and state stay perfectly synchronized
@@ -187,6 +202,29 @@ return createElement("Frame", {
     Position = animations.position,
 })
 ```
+
+## 📊 Supported Value Types
+
+React-Flow supports animating the following userdata and native types:
+
+### Basic Types
+- `number` - Numeric values
+- `UDim2` - 2D positioning (scale and offset)
+- `UDim` - 1D positioning (scale and offset)
+- `Vector2` - 2D vectors
+- `Vector3` - 3D vectors
+- `Color3` - RGB color values
+
+### Advanced Types
+- `CFrame` - Position and orientation 
+- `ColorSequenceKeypoint` - Color gradient keypoints
+- `NumberSequenceKeypoint` - Number gradient keypoints
+- `BrickColor` - Legacy colors
+- `NumberRange` - Min/max ranges
+- `PhysicalProperties` - Physics simulation properties
+- `Ray` - Line segments
+- `Region3` - 3D spatial regions
+- `Region3int16` - Integer-based 3D regions
 
 ## 🎬 Showcase
 
