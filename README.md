@@ -8,13 +8,13 @@ A blazing fast animation library for React-Lua interfaces, providing stateful an
 - [Installation](#-installation)
   - [Using Wally](#using-wally-recommended)
   - [Manual Installation](#manual-installation)
-  - [Requiring the Module](#requiring-the-module)
 - [Hooks](#-hooks)
   - [useSpring](#usespring)
   - [useTween](#usetween)
   - [useGroupAnimation](#usegroupanimation)
 - [Supported Value Types](#-supported-value-types)
 - [Showcase](#-showcase)
+- [Contribution](#-contribution)
 - [License](#-license)
 
 ## ✨ Features
@@ -231,6 +231,10 @@ React-Flow supports animating the following userdata and native types:
 <!-- ### Physics-Based Interactions  
 *[Placeholder for GIF of spring physics animations]* -->
 
-## 📜 License
+## 💖 Contribution
+
+React-Flow was developed by [@Nexure](https://github.com/OutOfBears) with the assistance of [@GreenDeno](https://github.com/GreenDeno)
+
+## 📝 License
 
 This project is licensed under the MIT License - see the [`LICENSE`](LICENSE) file for details.
