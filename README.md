@@ -1,1 +1,194 @@
 # React-Flow
+
+A blazing fast animation library for React-Lua interfaces, providing stateful animations with unrestricted flexibility and performance. React-Flow delivers a powerful animation system built specifically for React's component-based architecture, allowing developers to create fluid, responsive UI animations with minimal effort.
+
+## ✨ Features
+
+- 🔄 **Stateful Animations** - Animations that automatically respond to your component's state changes, ensuring UI and state stay perfectly synchronized
+- ⛓️ **Chainable Animations** - Effortlessly build complex animation sequences that flow naturally from one to another
+- 🔀 **Interruptible Flows** - Gracefully handle user interactions by modifying animations mid-flight without jarring visual transitions
+- 🧩 **Composable System** - Create reusable animation components that can be combined in endless ways for consistent motion design
+- 🛡️ **Memory-Safe Design** - Built with React's lifecycle in mind to prevent memory leaks and ensure proper cleanup
+
+## 📦 Installation
+
+### Using Wally (Recommended)
+
+Add React-Flow to your `wally.toml` file:
+
+```toml
+[dependencies]
+ReactFlow = "yourusername/react-flow@0.1.0"
+```
+
+Then install with:
+```bash
+wally install
+```
+
+### Manual Installation
+
+Simply clone the repository and include it in your project structure.
+
+### Requiring the Module
+
+Once installed, require React-Flow in your code:
+
+```lua
+-- For common Roblox setups:
+local ReactFlow = require(ReplicatedStorage.Packages.ReactFlow)
+```
+
+## 🔧 Hooks
+
+### useSpring
+
+Creates spring-based physics animations with React bindings. Springs provide natural, bouncy motion that reacts to changes dynamically.
+
+**Arguments:**
+- **config:** A configuration table with the following properties:
+  - **start:** Initial value of the animation (required)
+  - **target:** Target value to animate toward (optional)
+  - **speed:** Spring stiffness - higher values create faster motion (default: 10)
+  - **damper:** Damping ratio - higher values reduce bouncing (default: 1)
+
+**Returns:**  
+A binding that updates as the animation progresses, and an update function to modify the animation.
+
+**Example:**
+```lua
+local useSpring = ReactFlow.useSpring
+
+-- Inside your component:
+local position, updatePosition = useSpring({
+    start = UDim2.fromScale(0, 0),           -- Initial Value (required)
+    target = UDim2.fromScale(0.5, 0.5),      -- Target value (optional)
+
+    speed = 20,
+    damper = 0.8,
+})
+
+-- Later, update the spring with new parameters:
+updatePosition({
+    target = UDim2.fromScale(0.5, 0.5),
+
+    speed = 15,
+    damper = 0.7,
+})
+
+-- Use in your component:
+return createElement("Frame", {
+    Position = position, -- Use binding directly in property
+})
+```
+
+### useTween
+
+Creates tween-based animations that follow a specific timing curve. Ideal for animations that need precise timing or easing effects.
+
+**Arguments:**
+- **config:** A configuration table with the following properties:
+  - **start:** Initial value of the animation (required)
+  - **target:** Target value to animate toward (optional)
+  - **info:** Spring stiffness - higher values create faster motion (default: 10)
+  - **immediate:** If true, changes happen instantly without animation (optional, default: false)
+
+**Returns:**  
+A binding that updates as the animation progresses, and an update function to modify the animation.
+
+**Example:**
+```lua
+local useTween = ReactFlow.useTween
+
+-- Inside your component:
+local transparency, updateTransparency = useTween({
+    start = 1,      -- Initial value (required)
+    target = 0,     -- Target value (optional)
+
+    -- Optional TweenInfo - controls duration, easing style, and behavior
+    info = TweenInfo.new(
+        0.5,
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out, 
+    )
+})
+
+-- Later, update the tween:
+updateTransparency({
+    target = 0,     -- New target value
+
+    -- Optional: update tween configuration
+    info = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut),
+})
+
+-- Use in your component:
+return createElement("Frame", {
+    BackgroundTransparency = transparency,
+})
+```
+
+### useGroupAnimation
+
+Creates a group of animations that are managed together as a single entity. With `useGroupAnimation`, you can define multiple animation states by combining the following animation primitives: `useAnimation`, `useSpringAnimation`, `useSequenceAnimation`, and `useTweenAnimation`. This allows you to define complex animation states and switch between them seamlessly at runtime, providing an elegant way to handle UI state transitions.
+
+**Arguments:**
+- **animations:** A table mapping state names (e.g., "active", "inactive") to their animation definitions. Each definition can mix multiple animation types.
+- **defaults:** A table providing the default initial values for each animation property.
+
+**Returns:**  
+A table of bindings for each animation property, and a function (commonly named `playAnimation`) that accepts a state name to switch between the defined animation groups.
+
+**Example:**
+
+```lua
+local useGroupAnimation = ReactFlow.useGroupAnimation
+local useSequenceAnimation = ReactFlow.useSequenceAnimation
+local useAnimation = ReactFlow.useAnimation
+
+local Spring = ReactFlow.Spring
+local Tween = ReactFlow.Tween
+
+-- Inside your component:
+local animations, playAnimation = useGroupAnimation({
+    enable = useSequenceAnimation({
+        {
+            timestamp = 0,
+            transparency = Tween({target = 0, info = TweenInfo.new(0.2)}),
+        },
+        {
+            timestamp = 0.2,
+            position = Spring({target = UDim2.fromScale(0.5, 0.5), speed = 20}),
+        },
+    }),
+    inactive = useAnimation({
+        transparency = Tween({target = 1, info = TweenInfo.new(0.1)}),
+        position = Spring({target = UDim2.fromScale(0.5, 1), speed = 25}),
+    }),
+}, {
+    transparency = 1
+    position = UDim2.fromScale(0.5, 1),
+})
+
+-- Play the animation with the specificed name:
+if enabled then
+    playAnimation("enable")
+else
+    playAnimation("disable")
+end
+
+-- Use the animation bindings in your component:
+return createElement("Frame", {
+    Size = UDim2.new(0, 100, 0, 100),
+    BackgroundTransparency = animations.transparency,
+    Position = animations.position,
+})
+```
+
+## 🎬 Showcase
+
+<!-- ### Physics-Based Interactions  
+*[Placeholder for GIF of spring physics animations]* -->
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [`LICENSE`](LICENSE) file for details.
