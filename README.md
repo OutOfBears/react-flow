@@ -82,6 +82,8 @@ return createElement("Frame", {
 })
 ```
 
+---
+
 ### useTween
 
 Creates tween-based animations that follow a specific timing curve. Ideal for animations that need precise timing or easing effects.
@@ -126,6 +128,8 @@ return createElement("Frame", {
     BackgroundTransparency = transparency,
 })
 ```
+
+---
 
 ### useGroupAnimation
 
