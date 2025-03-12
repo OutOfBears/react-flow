@@ -146,7 +146,7 @@ function Tween.new<T>(props: TweenProperties<T>)
 	return self
 end
 
-function Tween:Play(from: any?)
+function Tween:Play(from: any?, immediate: boolean?)
 	if self.playing then
 		self:Stop()
 	end
@@ -181,6 +181,15 @@ function Tween:Play(from: any?)
 
 	local fromValue = LinearValue.fromValue(baseFromValue)
 	local toValue = LinearValue.fromValue(baseToValue)
+
+	if immediate then
+		self.listener(baseToValue)
+
+		self.playing = false
+		self.player = nil
+
+		return Promise.resolve()
+	end
 
 	local animation = Promise.new(function(resolve, _, onCancel)
 		local play, cancel = playTween2(tweenInfo, function(value)
