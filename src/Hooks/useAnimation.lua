@@ -38,7 +38,7 @@ function Animation:SetListener(listener: (string, any) -> ())
 	self.listener = listener
 end
 
-function Animation:Play(fromProps: AnimationProps)
+function Animation:Play(fromProps: AnimationProps, immediate: boolean?)
 	if self.playing then
 		self:Stop()
 	end
@@ -47,7 +47,7 @@ function Animation:Play(fromProps: AnimationProps)
 		local promises = {}
 
 		for name, animatable in self.animation do
-			local animationPromise = animatable:Play(fromProps[name])
+			local animationPromise = animatable:Play(fromProps[name], immediate)
 			table.insert(promises, animationPromise)
 		end
 

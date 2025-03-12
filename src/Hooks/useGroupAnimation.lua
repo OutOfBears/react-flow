@@ -10,7 +10,7 @@ type StateSetters = {
 }
 
 export type Animation = {
-	Play: (DefaultProperties) -> Animation,
+	Play: (DefaultProperties, boolean?) -> Animation,
 	Stop: () -> nil,
 }
 
@@ -45,7 +45,7 @@ function GroupAnimationController.new(props: GroupAnimation, default: DefaultPro
 	return self
 end
 
-function GroupAnimationController:Play(newState: string)
+function GroupAnimationController:Play(newState: string, immediate: boolean?)
 	local animation = self.animations[newState]
 	assert(animation, `No animation found for state {newState}`)
 
@@ -56,7 +56,7 @@ function GroupAnimationController:Play(newState: string)
 	end
 
 	self.currentAnimation = animation
-	animation:Play(self.state)
+	animation:Play(self.state, immediate)
 end
 
 function GroupAnimationController:Stop()
@@ -98,10 +98,9 @@ local function useGroupAnimation(props: GroupAnimation, default: DefaultProperti
 				newController:UpdateSetters(newSetters)
 			end,
 
-			play = function(newState: string)
+			play = function(newState: string, immediate: boolean?)
 				assert(typeof(newState) == "string", "useGroupAnimation expects a string 'state'")
-
-				newController:Play(newState)
+				newController:Play(newState, immediate)
 			end,
 
 			stop = function()

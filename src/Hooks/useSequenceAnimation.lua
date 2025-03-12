@@ -65,7 +65,7 @@ function Sequence:SetListener(listener: (string, any) -> ())
 	self.listener = listener
 end
 
-function Sequence:Play(fromProps: SequenceProps)
+function Sequence:Play(fromProps: SequenceProps, immediate: boolean?)
 	if self.playing then
 		self:Stop()
 	end
@@ -75,7 +75,7 @@ function Sequence:Play(fromProps: SequenceProps)
 		local playing = {}
 
 		for _, sequenced in self.animation do
-			local animationPromise = Promise.delay(sequenced.timestamp):andThen(function()
+			local animationPromise = Promise.delay(if immediate then 0 else sequenced.timestamp):andThen(function()
 				local allAnimatables = {}
 
 				for name, animatable in sequenced do
@@ -87,7 +87,7 @@ function Sequence:Play(fromProps: SequenceProps)
 						playing[name]:cancel()
 					end
 
-					local promise = animatable:Play(fromProps[name])
+					local promise = animatable:Play(fromProps[name], immediate)
 					playing[name] = promise
 
 					table.insert(allAnimatables, promise)

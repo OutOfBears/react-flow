@@ -14,8 +14,10 @@ local function useSpring(props: Spring.SpringProperties)
 		return {
 			spring = spring,
 
-			start = function(subProps: Spring.SpringProperties)
+			start = function(subProps: Spring.SpringProperties, immediate: boolean?)
 				assert(typeof(subProps) == "table", "useSpring expects a table of properties")
+
+				spring:SetImmediate(immediate)
 
 				if subProps.target then
 					spring:SetGoal(subProps.target)

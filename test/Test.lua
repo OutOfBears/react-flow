@@ -60,6 +60,10 @@ end
 local function TestAnimation()
 	local sequence, play, stop = useGroupAnimation({
 		moveRight = useAnimation({
+			textSize = Tween({
+				info = TweenInfo.new(1, Enum.EasingStyle.Back),
+				target = 25,
+			}),
 			position = Spring({
 				target = UDim2.fromScale(0.8, 0),
 				speed = 5,
@@ -73,8 +77,13 @@ local function TestAnimation()
 				speed = 5,
 				damper = 0.7,
 			}),
+			textSize = Tween({
+				info = TweenInfo.new(1, Enum.EasingStyle.Back),
+				target = 10,
+			}),
 		}),
 	}, {
+		textSize = 10,
 		size = UDim2.fromOffset(200, 200),
 		position = UDim2.fromScale(0.5, 0),
 	})
@@ -101,6 +110,7 @@ local function TestAnimation()
 		Name = "Animation Group",
 		Position = sequence.position,
 		Size = sequence.size,
+		TextSize = sequence.textSize,
 		ParentSize = UDim2.fromScale(1, 0.25),
 	})
 end

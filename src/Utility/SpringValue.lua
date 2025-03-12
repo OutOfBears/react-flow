@@ -23,6 +23,7 @@ function SpringValue.new(initial: LinearValue.LinearValueType, speed: number?, d
 		_velocities = velocity,
 		_speed = speed or 1,
 		_damper = damper or 1,
+		_immediate = false,
 		_updater = nil,
 	}, SpringValue)
 end
@@ -53,6 +54,10 @@ end
 
 function SpringValue:SetDamper(damper: number)
 	self._damper = damper
+end
+
+function SpringValue:SetImmediate(immediate: boolean)
+	self._immediate = immediate
 end
 
 function SpringValue:SetUpdater(updater: (any) -> ())
@@ -116,6 +121,16 @@ end
 function SpringValue:Run(update: () -> ()?)
 	if update then
 		self._updater = update
+	end
+
+	if self._immediate then
+		self._current = self._goal
+
+		if self._updater then
+			self._updater(self:GetValue())
+		end
+
+		return Promise.resolve()
 	end
 
 	return Promise.new(function(resolve, _, onCancel)
