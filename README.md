@@ -108,7 +108,6 @@ Creates tween-based animations that follow a specific timing curve. Ideal for an
   - **start:** Initial value of the animation (required)
   - **target:** Target value to animate toward (optional)
   - **info:** Spring stiffness - higher values create faster motion (default: 10)
-  - **immediate:** If true, changes happen instantly without animation (optional, default: false)
 
 **Returns:**  
 A binding that updates as the animation progresses, and an update function to modify the animation.
@@ -179,7 +178,7 @@ local animations, playAnimation = useGroupAnimation({
             position = Spring({target = UDim2.fromScale(0.5, 0.5), speed = 20}),
         },
     }),
-    inactive = useAnimation({
+    disable = useAnimation({
         transparency = Tween({target = 1, info = TweenInfo.new(0.1)}),
         position = Spring({target = UDim2.fromScale(0.5, 1), speed = 25}),
     }),
@@ -192,7 +191,10 @@ local animations, playAnimation = useGroupAnimation({
 if enabled then
     playAnimation("enable")
 else
-    playAnimation("disable")
+    playAnimation(
+        "disable",
+        true -- Optional second argument to play animation immediately
+    )
 end
 
 -- Use the animation bindings in your component:
@@ -229,14 +231,20 @@ React-Flow supports animating the following userdata and native types:
 ## 🎬 Showcase
 
 <div align="center">
-    <p style="font-size: 1.5em; font-weight: 500">Round Control Interface</p>
+    <p style="font-size: 1.5em; font-weight: 500; margin-bottom: 0">Round Control Interface</p>
     <img src="https://i.imgur.com/y1On24b.gif" alt="RoundControl" style="width: 600px" />
 </div>
 
 <div align="center" style="margin-top: 2rem">
-    <p style="font-size: 1.5em; font-weight: 500">Tower Upgrade Interface</p>
+    <p style="font-size: 1.5em; font-weight: 500; margin-bottom: 0">Tower Upgrade Interface</p>
     <img src="https://i.imgur.com/tdhyG9f.gif" alt="TowerUpgrade" style="width: 600px"/>
 </div>
+
+<div align="center" style="margin-top: 2rem">
+    <p style="font-size: 1.5em; font-weight: 500; margin-bottom: 0">NPC Dialogue</p>
+    <img src="https://i.imgur.com/9u4xaRN.gif" alt="NPCDialogue" style="width: 600px"/>
+</div>
+
 
 ## 💖 Contribution
 
