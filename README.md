@@ -231,18 +231,18 @@ React-Flow supports animating the following userdata and native types:
 ## 🎬 Showcase
 
 <div align="center">
-    <p style="font-size: 1.5em; font-weight: 500; margin-bottom: 0">Round Control Interface</p>
     <img src="https://i.imgur.com/y1On24b.gif" alt="RoundControl" style="width: 600px" />
+    <p style="font-size: 1.5em; font-weight: 500">Round Control Interface</p>
 </div>
 
 <div align="center" style="margin-top: 2rem">
-    <p style="font-size: 1.5em; font-weight: 500; margin-bottom: 0">Tower Upgrade Interface</p>
     <img src="https://i.imgur.com/tdhyG9f.gif" alt="TowerUpgrade" style="width: 600px"/>
+    <p style="font-size: 1.5em; font-weight: 500">Tower Upgrade Interface</p>
 </div>
 
 <div align="center" style="margin-top: 2rem">
-    <p style="font-size: 1.5em; font-weight: 500; margin-bottom: 0">NPC Dialogue</p>
     <img src="https://i.imgur.com/9u4xaRN.gif" alt="NPCDialogue" style="width: 600px"/>
+    <p style="font-size: 1.5em; font-weight: 500">NPC Dialogue</p>
 </div>
 
 
