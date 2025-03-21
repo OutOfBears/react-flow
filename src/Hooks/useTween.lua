@@ -14,15 +14,15 @@ local function useTween<T>(props: Tween.TweenProperties<T>)
 		return {
 			tween = tween,
 
-			start = function(subProps: Tween.TweenProperties<T>)
+			start = function(subProps: Tween.TweenProperties<T>, immediate: boolean?)
 				assert(typeof(subProps) == "table", "useTween expects a table of properties")
 
 				tween.props.info = subProps.info or tween.props.info
 				tween.props.start = subProps.start or binding:getValue()
 				tween.props.target = subProps.target or tween.props.target
-				tween.props.immediate = subProps.immediate or tween.props.immediate
+				tween.props.startImmediate = subProps.startImmediate or tween.props.startImmediate
 				tween.props.delay = subProps.delay or tween.props.delay
-				tween:Play(subProps.start or binding:getValue())
+				tween:Play(subProps.start or binding:getValue(), immediate)
 			end,
 
 			stop = function()
