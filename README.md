@@ -107,7 +107,7 @@ Creates tween-based animations that follow a specific timing curve. Ideal for an
 - **config:** A configuration table with the following properties:
   - **start:** Initial value of the animation (required)
   - **target:** Target value to animate toward (optional)
-  - **info:** Spring stiffness - higher values create faster motion (default: 10)
+  - **info:** TweenInfo instance (required)
 
 **Returns:**  
 A binding that updates as the animation progresses, and an update function to modify the animation.
@@ -121,7 +121,7 @@ local transparency, updateTransparency = useTween({
     start = 1,      -- Initial value (required)
     target = 0,     -- Target value (optional)
 
-    -- Optional TweenInfo - controls duration, easing style, and behavior
+    -- TweenInfo - controls duration, easing style, and behavior
     info = TweenInfo.new(
         0.5,
         Enum.EasingStyle.Quad,
