@@ -33,7 +33,7 @@ Add React-Flow to your `wally.toml` file:
 
 ```toml
 [dependencies]
-ReactFlow = "outofbears/react-flow@0.1.0"
+ReactFlow = "outofbears/react-flow@0.1.5"
 ```
 
 Then install with:
