@@ -1,19 +1,13 @@
 local function deepCopy<T>(tbl: T): T
-	if type(tbl) ~= "table" then
-		return tbl
-	end
+	local new = table.clone(tbl :: any)
 
-	local copy = {}
-
-	for key, value in tbl do
+	for key, value in tbl :: any do
 		if type(value) == "table" then
-			copy[key] = deepCopy(value)
-		else
-			copy[key] = value
+			new[key] = deepCopy(value)
 		end
 	end
 
-	return (copy :: any) :: T
+	return (new :: any) :: T
 end
 
 return {
