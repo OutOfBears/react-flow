@@ -205,6 +205,8 @@ return createElement("Frame", {
 })
 ```
 
+---
+
 ### `DynamicList`
 
 `DynamicList` is a component that automatically tracks and manages the addition, removal, and updating of child elements based on changes to its `children` prop. It ensures that its internal state stays synchronized with the provided `children`, updating dynamically when the children list changes.
