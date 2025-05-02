@@ -10,6 +10,22 @@
 ⚡ A blazing fast animation library for React-Lua interfaces, providing stateful animations with unrestricted flexibility and performance. 🤌
 </div>
 
+<div align="center">
+<br />
+
+[![Version](https://img.shields.io/github/v/release/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/releases)
+[![License](https://img.shields.io/github/license/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/blob/main/LICENSE.md)
+[![Stars](https://img.shields.io/github/stars/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/stargazers)
+[![Forks](https://img.shields.io/github/forks/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/network/members)
+[![Watchers](https://img.shields.io/github/watchers/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/watchers)
+[![Issues](https://img.shields.io/github/issues/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/outofbears/react-flow.svg?style=flat-square)](https://github.com/outofbears/react-flow/commits/main)
+
+
+</div>
+
+
 ## 📋 Table of Contents
 
 - [Features](#-features)
