@@ -12,4 +12,6 @@ return {
 	useTween = require(script.Hooks.useTween),
 
 	useBindings = require(script.Hooks.useBindings),
+
+	DynamicList = require(script.Components.DynamicList),
 }
