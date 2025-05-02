@@ -4,10 +4,11 @@
     <br />
 	<br />
 	React-Flow
-	
 </h3>
 
-A blazing fast animation library for React-Lua interfaces, providing stateful animations with unrestricted flexibility and performance. React-Flow delivers a powerful animation system built specifically for React's component-based architecture, allowing developers to create fluid, responsive UI animations with minimal effort.
+<div align="center">
+⚡ A blazing fast animation library for React-Lua interfaces, providing stateful animations with unrestricted flexibility and performance. 🤌
+</div>
 
 ## 📋 Table of Contents
 
