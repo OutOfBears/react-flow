@@ -1,7 +1,7 @@
 [package]
 name = "outofbears/react-flow"
 description = "React Animation Library for Roblox"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Jack Fox <jack@infernal.io>"]
 homepage = "https://github.com/outofbears/react-flow"
 registry = "https://github.com/UpliftGames/wally-index"
