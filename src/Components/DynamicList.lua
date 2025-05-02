@@ -1,17 +1,10 @@
 local React = require(script.Parent.Parent.React)
-local TableUtil = require(script.Parent.Parent.Utility.TableUtil)
+local ReactUtil = require(script.Parent.Parent.Utility.ReactUtil)
 
 local createElement = React.createElement
 local useState = React.useState
 local useEffect = React.useEffect
 local memo = React.memo
-
-local function updateReactChild(child)
-	local cloned = TableUtil.deepCopy(child)
-	cloned.type = child.type
-
-	return cloned
-end
 
 local function DynamicList(props: { children: {} })
 	local children = props.children
@@ -22,7 +15,7 @@ local function DynamicList(props: { children: {} })
 			local state = table.clone(prevState)
 
 			for key, child in children do
-				state[key] = child
+				state[key] = ReactUtil.updateReactChild(child)
 			end
 
 			for key, child in state do
@@ -39,7 +32,7 @@ local function DynamicList(props: { children: {} })
 					end)
 				end
 
-				state[key] = updateReactChild(child)
+				state[key] = ReactUtil.updateReactChild(child)
 			end
 
 			return state

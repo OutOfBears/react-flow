@@ -1,3 +1,5 @@
+type MixedArray = { [string | number]: any } | { any }
+
 local function deepCopy<T>(tbl: T): T
 	local new = table.clone(tbl :: any)
 
