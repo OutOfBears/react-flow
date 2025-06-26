@@ -113,7 +113,7 @@ local function playTween2(tweenInfo: TweenInfo, callback: Callback<number>, comp
 
 				callback(value)
 
-				if value >= 1 then
+				if alpha >= 1 then
 					if tweenRepeatCount ~= 0 and repeats < tweenRepeatCount then
 						repeats += 1
 						elapsed = 0
