@@ -13,6 +13,7 @@ export type SpringProperties = {
 	start: any,
 	target: any,
 	force: any?,
+	delay: number?,
 }
 
 function Spring.definition(props: SpringProperties)
@@ -50,6 +51,7 @@ function Spring:Play(from: any?, immediate: boolean?)
 	local newSpring = SpringValue.new(baseFromValue, self.props.speed, self.props.damper)
 	newSpring:SetImmediate(immediate)
 	newSpring:SetGoal(baseToValue)
+	newSpring:SetDelay(self.props.delay)
 
 	local oldVelocity = self._oldSpring and self._oldSpring:GetVelocity()
 	if oldVelocity then

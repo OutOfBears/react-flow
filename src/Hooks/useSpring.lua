@@ -19,6 +19,10 @@ local function useSpring(props: Spring.SpringProperties)
 
 				spring:SetImmediate(immediate)
 
+				if subProps.delay then
+					spring:SetDelay(subProps.delay)
+				end
+
 				if subProps.target then
 					spring:SetGoal(subProps.target)
 				end

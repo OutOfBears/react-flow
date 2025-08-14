@@ -25,6 +25,7 @@ function SpringValue.new(initial: LinearValue.LinearValueType, speed: number?, d
 		_damper = damper or 1,
 		_immediate = false,
 		_updater = nil,
+		_delay = nil :: number?,
 	}, SpringValue)
 end
 
@@ -58,6 +59,14 @@ end
 
 function SpringValue:SetImmediate(immediate: boolean)
 	self._immediate = immediate
+end
+
+function SpringValue:SetDelay(delay: number?)
+	if delay then
+		assert(delay >= 0, "Delay must be a non-negative number")
+	end
+
+	self._delay = delay
 end
 
 function SpringValue:SetUpdater(updater: (any) -> ())
@@ -134,9 +143,19 @@ function SpringValue:Run(update: () -> ()?)
 	end
 
 	return Promise.new(function(resolve, _, onCancel)
+		local cancelled = false
 		onCancel(function()
+			cancelled = true
 			self:Stop()
 		end)
+
+		if self._delay then
+			task.wait(self._delay)
+
+			if cancelled then
+				return
+			end
+		end
 
 		if update then
 			update(self:GetValue())
