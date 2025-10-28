@@ -21,30 +21,34 @@ export type TweenProperties<T> = {
 }
 
 local callbacks = {}
+local pooledUpdateConnection: RBXScriptConnection? = nil
+
 local function pooledUpdate(callback: Callback<number>): () -> ()
-	local empty = next(callbacks) == nil
+    callbacks[callback] = true
 
-	callbacks[callback] = true
+    if not pooledUpdateConnection then
+        pooledUpdateConnection = RunService.RenderStepped:Connect(function(dt)
+            local ran = false
 
-	if empty then
-		local connection
-		connection = RunService.RenderStepped:Connect(function(dt)
-			local ran = false
+            for nextCallback in callbacks do
+                ran = true
+                nextCallback(dt)
+            end
 
-			for nextCallback in callbacks do
-				ran = true
-				nextCallback(dt)
-			end
+            if not ran and pooledUpdateConnection then
+                pooledUpdateConnection:Disconnect()
+                pooledUpdateConnection = nil
+            end
+        end)
+    end
 
-			if not ran then
-				connection:Disconnect()
-			end
-		end)
-	end
-
-	return function()
-		callbacks[callback] = nil
-	end
+    return function()
+        callbacks[callback] = nil
+        if next(callbacks) == nil and pooledUpdateConnection then
+            pooledUpdateConnection:Disconnect()
+            pooledUpdateConnection = nil
+        end
+    end
 end
 
 local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> nil)
