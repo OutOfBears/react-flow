@@ -231,47 +231,56 @@ return createElement("Frame", {
 
 ---
 
-### `DynamicList`
+### `TransitionFragment`
 
-`DynamicList` is a component that automatically tracks and manages the addition, removal, and updating of child elements based on changes to its `children` prop. It ensures that its internal state stays synchronized with the provided `children`, updating dynamically when the children list changes.
+`TransitionFragment` is a component that allows elements to be animated on transition in and out by preserving their presence in a cached fragment during enter and leave operations. When children are added or removed, the component maintains them in the DOM while injecting transition state props, enabling easy enter and exit animations.
 
-Key behavior:
+The component automatically injects the following props into child elements:
 
-- **Child management**: The component will add new children or update existing ones based on changes in the `children` prop.
-- **Removing children**: When a child element is removed, it must call its `destroy` handler to clean up. The `remove` handler will notify `DynamicList` that the child has been removed by the parent, triggering the necessary state updates.
+- **entering**: `boolean` - True when the element is being added
+- **exiting**: `boolean` - True when the element is being removed
+- **onEnterComplete**: `() -> ()` - Callback when enter animation completes
+- **onExitComplete**: `() -> ()` - Callback when exit animation completes
 
-This makes it easy to create lists where child elements can be added, updated, or removed without requiring manual state management.
+This allows child components to respond to transition states and perform appropriate animations while `TransitionFragment` handles the lifecycle management.
 
 **Arguments:**
 
-- **children**: A table containing the elements to be managed by the list. The elements are automatically synchronized with the list’s internal state.
+- **children**: A table containing the elements to be managed with transitions. Elements are automatically cached and transitioned when added or removed.
 
 **Returns:**
 
-A `DynamicList` component that handles the automatic synchronization of its children, ensuring they stay in sync with the latest state.
+A `TransitionFragment` component that handles the transition lifecycle and injects transition props into its children.
 
 **Example:**
 
 ```lua
-local items, updateItems = useState({ item1 = "hello world!" })
+local function Entry(props: {
+    entering: boolean,
+    exiting: boolean,
+    onEnterComplete: () -> (),
+    onExitComplete: () -> ()
+})
+    useEffect(function()
+        if props.entering then
+            -- Play enter animation and wait for animation to complete
+            props.onEnterComplete()
+        end
+    end, {props.entering})
 
-useEffect(function()
-    local thread = task.delay(5, function()
-        updateItems(function(state)
-            local newState = table.clone(state)
-            newState.item1 = nil
-            return newState
-            end)
-    end)
+    useEffect(function()
+        if props.exiting then
+            -- Play enter animation and wait for animation to complete
+            props.onExitComplete()
+        end
+    end, {props.exiting})
 
-    return function()
-        task.cancel(thread)
-    end
-end, {})
+    return ...
+end
 
-return createElement(DynamicList, {}, {
-    item1 = items.items1 and createElement("TextLabel", {
-        Text = items.item1,
+return createElement(ExampleContainer, {}, {
+    entries = createElement(TransitionFragment, {}, {
+        -- list of Entries
     })
 })
 ```
