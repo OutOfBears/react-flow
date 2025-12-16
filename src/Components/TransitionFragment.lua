@@ -7,14 +7,14 @@ local useEffect = React.useEffect
 local memo = React.memo
 local cloneElement = React.cloneElement
 
-local function TransitionFragment(props: { children: {} })
+local function TransitionFragment(props: { children: { [any]: React.ReactElement? } })
 	local children = props.children
 	local transitionChildren, updateTransitionChildren = useState({})
 
 	useEffect(function()
 		updateTransitionChildren(function(prevState)
 			local nextState = table.clone(prevState)
-			local reconciles = false
+			local hasChanges = false
 
 			-- Add or update active children
 			for key, child in children do
@@ -40,10 +40,10 @@ local function TransitionFragment(props: { children: {} })
 					})
 
 					nextState[key] = ReactUtil.updateReactChild(wrapped)
-					reconciles = true
+					hasChanges = true
 				elseif nextState[key] ~= updated then
 					nextState[key] = updated
-					reconciles = true
+					hasChanges = true
 				end
 			end
 			-- Handle removals: mark existing entries not in children
@@ -65,12 +65,12 @@ local function TransitionFragment(props: { children: {} })
 						})
 
 						nextState[key] = ReactUtil.updateReactChild(wrapped)
-						reconciles = true
+						hasChanges = true
 					end
 				end
 			end
 
-			if reconciles then
+			if hasChanges then
 				return nextState
 			else
 				return prevState
