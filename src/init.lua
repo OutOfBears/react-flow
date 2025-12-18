@@ -14,4 +14,5 @@ return {
 	useBindings = require(script.Hooks.useBindings),
 
 	TransitionFragment = require(script.Components.TransitionFragment),
+	DynamicList = require(script.Components.DynamicList),
 }
