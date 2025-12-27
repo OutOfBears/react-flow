@@ -7,9 +7,9 @@ local useEffect = React.useEffect
 local memo = React.memo
 local cloneElement = React.cloneElement
 
-local function TransitionFragment(props: { children: { [any]: React.ReactElement? } })
-	local children = props.children
-	local transitionChildren, updateTransitionChildren = useState({})
+local function TransitionFragment(props: React.ElementProps<any>)
+	local children = props.children or {}
+	local transitionChildren, updateTransitionChildren = useState({} :: { [any]: React.ReactElement<any> })
 
 	useEffect(function()
 		updateTransitionChildren(function(prevState)
@@ -78,7 +78,7 @@ local function TransitionFragment(props: { children: { [any]: React.ReactElement
 		end)
 	end, { children })
 
-	return createElement(React.Fragment, {}, transitionChildren)
+	return createElement(React.Fragment, {}, transitionChildren :: any)
 end
 
 return memo(TransitionFragment)
