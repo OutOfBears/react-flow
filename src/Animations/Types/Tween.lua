@@ -15,8 +15,8 @@ export type Tween = typeof(Tween.new())
 export type TweenProperties<T> = {
 	info: TweenInfo,
 	startImmediate: T?,
-	start: T,
-	target: T,
+	start: T?,
+	target: T?,
 	delay: number?,
 }
 

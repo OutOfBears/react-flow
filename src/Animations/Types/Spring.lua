@@ -10,8 +10,8 @@ export type Spring = typeof(Spring.new())
 export type SpringProperties = {
 	damper: number?,
 	speed: number?,
-	start: any,
-	target: any,
+	start: any?,
+	target: any?,
 	force: any?,
 	delay: number?,
 }
