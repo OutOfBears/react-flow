@@ -57,7 +57,7 @@ Add React-Flow to your `wally.toml` file:
 
 ```toml
 [dependencies]
-ReactFlow = "outofbears/react-flow@0.2.0"
+ReactFlow = "outofbears/react-flow@0.4.0"
 ```
 
 Then install with:
@@ -328,7 +328,7 @@ React-Flow supports animating the following userdata and native types:
 
 ## 💖 Contribution
 
-React-Flow was developed by [@Nexure](https://github.com/OutOfBears) with the assistance of [@GreenDeno](https://github.com/GreenDeno)
+React-Flow was developed by [@Bear](https://github.com/OutOfBears) with the assistance of [@GreenDeno](https://github.com/GreenDeno)
 
 ## 📝 License
 
