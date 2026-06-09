@@ -35,6 +35,8 @@
 - [Hooks](#-hooks)
   - [useSpring](#usespring)
   - [useTween](#usetween)
+  - [useSpringValue](#usespringvalue)
+  - [useTweenValue](#usetweenvalue)
   - [useGroupAnimation](#usegroupanimation)
   - [useTransparencyModifier](#usetransparencymodifier)
 - [Supported Value Types](#-supported-value-types)
@@ -163,6 +165,82 @@ updateTransparency({
 })
 
 -- Use in your component:
+return createElement("Frame", {
+    BackgroundTransparency = transparency,
+})
+```
+
+---
+
+### `useSpringValue`
+
+Declarative variant of [`useSpring`](#usespring). Instead of returning an update function, the hook watches the `target`, `speed`, and `damper` props on each render and re-targets the spring automatically when they change. Use this when your spring goal is a direct function of React state and you don't need imperative control.
+
+The `start` prop seeds the initial value only — it is **not** re-applied on subsequent renders, so the spring smoothly retargets from its current value rather than snapping back to the start.
+
+**Arguments:**
+- **config:** A configuration table with the following properties:
+  - **start:** Initial value of the animation (used only on mount)
+  - **target:** Current goal — changes between renders are followed automatically
+  - **speed:** Spring stiffness (live-updatable)
+  - **damper:** Damping ratio (live-updatable)
+
+**Returns:**  
+A binding that updates as the animation progresses. No update or stop function — control is purely via props.
+
+**Example:**
+```lua
+local useSpringValue = ReactFlow.useSpringValue
+
+-- Inside your component:
+local hovered, setHovered = React.useState(false)
+
+local color = useSpringValue({
+    start = Color3.fromRGB(150, 150, 150),
+    target = if hovered then Color3.fromRGB(255, 255, 255) else Color3.fromRGB(150, 150, 150),
+
+    speed = 20,
+    damper = 0.8,
+})
+
+return createElement("TextButton", {
+    BackgroundColor3 = color,
+    [React.Event.MouseEnter] = function() setHovered(true) end,
+    [React.Event.MouseLeave] = function() setHovered(false) end,
+})
+```
+
+---
+
+### `useTweenValue`
+
+Declarative variant of [`useTween`](#usetween). The hook watches the `target` prop on each render and replays the tween from the binding's current value to the new target. Use this when your tween goal is driven by React state.
+
+As with `useSpringValue`, the `start` prop is only used on mount — re-renders tween from the current animated value, not from `start`.
+
+**Arguments:**
+- **config:** A configuration table with the following properties:
+  - **start:** Initial value of the animation (used only on mount)
+  - **target:** Current goal — changes between renders trigger a replay
+  - **info:** `TweenInfo` instance
+  - **delay:** Optional delay before the tween starts
+
+**Returns:**  
+A binding that updates as the animation progresses.
+
+**Example:**
+```lua
+local useTweenValue = ReactFlow.useTweenValue
+
+-- Inside your component:
+local visible, setVisible = React.useState(false)
+
+local transparency = useTweenValue({
+    start = 1,
+    target = if visible then 0 else 1,
+    info = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+})
+
 return createElement("Frame", {
     BackgroundTransparency = transparency,
 })

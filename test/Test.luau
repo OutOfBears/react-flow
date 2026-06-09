@@ -3,6 +3,7 @@ local Packages = ReplicatedStorage:WaitForChild("Packages")
 
 local React = require(Packages.React)
 local useEffect = React.useEffect
+local useState = React.useState
 local createElement = React.createElement
 
 local ReactAnimation = require(Packages.ReactAnimation)
@@ -11,6 +12,8 @@ local useGroupAnimation = ReactAnimation.useGroupAnimation
 local useSequenceAnimation = ReactAnimation.useSequenceAnimation
 local useSpring = ReactAnimation.useSpring
 local useTween = ReactAnimation.useTween
+local useSpringValue = ReactAnimation.useSpringValue
+local useTweenValue = ReactAnimation.useTweenValue
 local useBindingEffect = ReactAnimation.useBindings
 local useAnimation = ReactAnimation.useAnimation
 local Spring = ReactAnimation.Spring
@@ -213,7 +216,7 @@ local function TestTween()
 
 	useBindingEffect(function(v2)
 		if v2.R == 0 then
-			update2({ start = Color3.new(0, 1, 9), target = Color3.new(1, 0, 0) })
+			update2({ start = Color3.new(0, 1, 9 :: any), target = Color3.new(1, 0, 0) })
 		elseif v2.R == 1 then
 			update2({ target = Color3.new(0, 1, 0) })
 		end
@@ -262,6 +265,79 @@ local function TestSpring()
 	})
 end
 
+-- -- @TestSpringValue (declarative)
+local function TestSpringValue()
+	local toggled, setToggled = useState(false)
+
+	local value = useSpringValue({
+		start = UDim2.fromScale(0, 0),
+		target = if toggled then UDim2.fromScale(1, 0) else UDim2.fromScale(-1, 0),
+		speed = 5,
+		damper = 0.7,
+	})
+
+	useEffect(function()
+		local running = true
+		local thread = task.spawn(function()
+			while running do
+				task.wait(3)
+				if not running then
+					break
+				end
+				setToggled(function(v)
+					return not v
+				end)
+			end
+		end)
+
+		return function()
+			running = false
+			task.cancel(thread)
+		end
+	end, {})
+
+	return createFrame({
+		Name = "Spring Value",
+		Position = value,
+	})
+end
+
+-- -- @TestTweenValue (declarative)
+local function TestTweenValue()
+	local toggled, setToggled = useState(false)
+
+	local value = useTweenValue({
+		info = TweenInfo.new(1),
+		start = UDim2.fromScale(0, 0),
+		target = if toggled then UDim2.fromScale(1, 0) else UDim2.fromScale(0, 0),
+	})
+
+	useEffect(function()
+		local running = true
+		local thread = task.spawn(function()
+			while running do
+				task.wait(2)
+				if not running then
+					break
+				end
+				setToggled(function(v)
+					return not v
+				end)
+			end
+		end)
+
+		return function()
+			running = false
+			task.cancel(thread)
+		end
+	end, {})
+
+	return createFrame({
+		Name = "Tween Value",
+		Position = value,
+	})
+end
+
 -- -- @TestTransparency
 local function TestTransparency()
 	local value, update = useTween({
@@ -306,16 +382,18 @@ end
 -- @entry
 local function Test()
 	return createElement("Frame", {
-		Size = UDim2.fromScale(1, 1),
+		Size = UDim2.fromScale(0.5, 0.5),
 		BackgroundTransparency = 1,
 	}, {
 		uiListLayout = createElement("UIListLayout", {
 			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			VerticalAlignment = Enum.VerticalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Top,
 		}),
 
 		tween = createElement(TestTween),
 		spring = createElement(TestSpring),
+		springValue = createElement(TestSpringValue),
+		tweenValue = createElement(TestTweenValue),
 		sequence = createElement(TestSequence),
 		animation = createElement(TestAnimation),
 		transaprency = createElement(TestTransparency),
