@@ -1,12 +1,15 @@
-local SpringValue = require(script.Parent.Parent.Utility.SpringValue)
-local Spring = require(script.Parent.Parent.Animations.Types.Spring)
+local React = require("../../React")
+local SpringValue = require("../Utility/SpringValue")
+local Spring = require("../Animations/Types/Spring")
 
-local React = require(script.Parent.Parent.React)
 local useBinding = React.useBinding
 local useMemo = React.useMemo
 local useEffect = React.useEffect
 
-local function useSpring(props: Spring.SpringProperties)
+type SpringStart<T> = (subProps: Spring.SpringProperties<T>, immediate: boolean?) -> ()
+type SpringStop = () -> ()
+
+local function useSpring<T>(props: Spring.SpringProperties<T>): (React.Binding<T?>, SpringStart<T>, SpringStop)
 	local binding, update = useBinding(props.start)
 	local controller = useMemo(function()
 		local spring = SpringValue.new(props.start, props.speed, props.damper)
@@ -14,7 +17,7 @@ local function useSpring(props: Spring.SpringProperties)
 		return {
 			spring = spring,
 
-			start = function(subProps: Spring.SpringProperties, immediate: boolean?)
+			start = function(subProps: Spring.SpringProperties<T>, immediate: boolean?)
 				assert(typeof(subProps) == "table", "useSpring expects a table of properties")
 
 				spring:SetImmediate(immediate)

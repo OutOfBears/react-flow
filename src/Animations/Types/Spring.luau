@@ -1,30 +1,41 @@
-local BaseAnimation = require(script.Parent.Parent.Base)
-local Promise = require(script.Parent.Parent.Parent.Promise)
-local SpringValue = require(script.Parent.Parent.Parent.Utility.SpringValue)
-local Symbols = require(script.Parent.Parent.Symbols)
+local BaseAnimation = require("../Base")
+local Promise = require("../../Promise")
+local SpringValue = require("../../Utility/SpringValue")
+local Symbols = require("../Symbols")
 
 local Spring = {}
 Spring.__index = Spring
 
-export type Spring = typeof(Spring.new())
-export type SpringProperties = {
+export type SpringProperties<T> = {
 	damper: number?,
 	speed: number?,
-	start: any?,
-	target: any?,
-	force: any?,
+	start: T?,
+	target: T?,
+	force: T?,
 	delay: number?,
 }
 
-function Spring.definition(props: SpringProperties)
+export type Spring<T> = {
+	props: SpringProperties<T>,
+	player: any?,
+	playing: boolean?,
+	listener: ((T) -> ())?,
+	_oldSpring: any?,
+
+	Play: (self: Spring<T>, from: T?, immediate: boolean?) -> any,
+	Stop: (self: Spring<T>) -> (),
+	SetListener: (self: Spring<T>, listener: (T) -> ()) -> (),
+}
+
+function Spring.definition<T>(props: SpringProperties<T>)
 	return {
 		[1] = Symbols.Spring,
 		[2] = props,
 	}
 end
 
-function Spring.new(props: SpringProperties)
-	local self = setmetatable(BaseAnimation.new(), Spring) :: Spring
+function Spring.new<T>(props: SpringProperties<T>): Spring<T>
+	local self = setmetatable(BaseAnimation.new(), Spring) :: Spring<T>
 
 	self.props = props
 	self.player = nil

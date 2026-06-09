@@ -6,6 +6,7 @@ local useEffect = React.useEffect
 local createElement = React.createElement
 
 local ReactAnimation = require(Packages.ReactAnimation)
+local useTransparencyModifier = ReactAnimation.useTransparencyModifier
 local useGroupAnimation = ReactAnimation.useGroupAnimation
 local useSequenceAnimation = ReactAnimation.useSequenceAnimation
 local useSpring = ReactAnimation.useSpring
@@ -261,6 +262,47 @@ local function TestSpring()
 	})
 end
 
+-- -- @TestTransparency
+local function TestTransparency()
+	local value, update = useTween({
+		start = 0,
+		target = 0,
+		info = TweenInfo.new(1, Enum.EasingStyle.Linear),
+	})
+	local transparency = useTransparencyModifier(value)
+
+	useEffect(function()
+		local running = true
+		local thread = task.spawn(function()
+			while running do
+				update({ target = 1 })
+				task.wait(1)
+
+				if not running then
+					break
+				end
+
+				update({ target = 0 })
+				task.wait(1)
+			end
+		end)
+
+		return function()
+			running = false
+			task.cancel(thread)
+		end
+	end, {})
+
+	return createFrame({
+		Name = "Transparency",
+		BackgroundTransparency = transparency(0),
+		Size = UDim2.fromScale(1.4, 1),
+		Position = value:map(function(position: number)
+			return UDim2.fromScale(position, 0)
+		end),
+	})
+end
+
 -- @entry
 local function Test()
 	return createElement("Frame", {
@@ -276,6 +318,7 @@ local function Test()
 		spring = createElement(TestSpring),
 		sequence = createElement(TestSequence),
 		animation = createElement(TestAnimation),
+		transaprency = createElement(TestTransparency),
 	})
 end
 

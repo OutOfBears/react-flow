@@ -1,13 +1,45 @@
 local RunService = game:GetService("RunService")
 
-local LinearValue = require(script.Parent.LinearValue)
-local Promise = require(script.Parent.Parent.Promise)
+local LinearValue = require("./LinearValue")
+local Promise = require("../Promise")
 
 local SpringValue = {}
 local SpringValues = {}
+local pooledUpdateConnection: RBXScriptConnection? = nil
 SpringValue.__index = SpringValue
 
 local EPSILON = 1e-2
+
+local function ensurePooledUpdate()
+	if pooledUpdateConnection then
+		return
+	end
+
+	pooledUpdateConnection = RunService.RenderStepped:Connect(function(dt: number)
+		local empty = true
+
+		for spring, resolve in pairs(SpringValues) do
+			empty = false
+
+			local didUpdate = spring:Update(dt)
+			local value = spring:GetValue()
+
+			if spring._updater then
+				spring._updater(value)
+			end
+
+			if not didUpdate then
+				SpringValues[spring] = nil
+				resolve()
+			end
+		end
+
+		if empty and pooledUpdateConnection then
+			pooledUpdateConnection:Disconnect()
+			pooledUpdateConnection = nil
+		end
+	end)
+end
 
 function SpringValue.new(initial: LinearValue.LinearValueType, speed: number?, damper: number?)
 	local target = LinearValue.fromValue(initial)
@@ -162,6 +194,7 @@ function SpringValue:Run(update: () -> ()?)
 		end
 
 		SpringValues[self] = resolve
+		ensurePooledUpdate()
 	end)
 end
 
@@ -203,22 +236,5 @@ function SpringValue:getPositionVelocity(dt: number, current: number, velocity: 
 
 	return a0 * p0 + a1 * p1 + a2 * v0, b0 * p0 + b1 * p1 + b2 * v0
 end
-
-RunService:UnbindFromRenderStep("UPDATE_SPRING_VALUES")
-RunService:BindToRenderStep("UPDATE_SPRING_VALUES", Enum.RenderPriority.First.Value, function(dt: number)
-	for spring, resolve in pairs(SpringValues) do
-		local didUpdate = spring:Update(dt)
-		local value = spring:GetValue()
-
-		if spring._updater then
-			spring._updater(value)
-		end
-
-		if not didUpdate then
-			SpringValues[spring] = nil
-			resolve()
-		end
-	end
-end)
 
 return SpringValue

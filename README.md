@@ -36,6 +36,7 @@
   - [useSpring](#usespring)
   - [useTween](#usetween)
   - [useGroupAnimation](#usegroupanimation)
+  - [useTransparencyModifier](#usetransparencymodifier)
 - [Supported Value Types](#-supported-value-types)
 - [Showcase](#-showcase)
 - [Contribution](#-contribution)
@@ -226,6 +227,56 @@ return createElement("Frame", {
     Size = UDim2.new(0, 100, 0, 100),
     BackgroundTransparency = animations.transparency,
     Position = animations.position,
+})
+```
+
+---
+
+### `useTransparencyModifier`
+
+Composes a transparency binding with a modifier so transparency values can be uniformly faded toward fully transparent. Useful for hover, disabled, or fade-in/out states that need to dim a whole element (or subtree) without rewriting every individual transparency value.
+
+The modifier is applied multiplicatively against visibility: a modifier of `0` leaves transparency untouched, a modifier of `1` makes the element fully transparent, and values in between blend smoothly. Both plain `number` transparencies and `NumberSequence` transparencies (e.g. for `UIGradient.Transparency`) are supported, as are static values and bindings.
+
+**Arguments:**
+- **modifier:** A binding holding a `number` between `0` and `1` representing the additional transparency to apply. A value of `0` is a no-op; `1` fully hides the target.
+
+**Returns:**  
+A function that takes a transparency value and returns a binding with the modifier applied. The returned function can be called repeatedly for each property you want to modify, and accepts:
+- A `number` (e.g. `BackgroundTransparency = 0.2`)
+- A `NumberSequence` (e.g. for `UIGradient.Transparency`)
+- A `Binding` of either of the above (animated transparency continues to update with the modifier applied)
+- `nil` (treated as `0`)
+
+**Example:**
+```lua
+local useTransparencyModifier = ReactFlow.useTransparencyModifier
+local useSpring = ReactFlow.useSpring
+
+-- Inside your component:
+local fade = useSpring({
+    start = 1,                  -- Start fully hidden
+    target = visible and 0 or 1,-- 0 = fully visible, 1 = fully hidden
+
+    speed = 18,
+    damper = 1,
+})
+
+local modifyTransparency = useTransparencyModifier(fade)
+
+return createElement("Frame", {
+    BackgroundTransparency = modifyTransparency(0.2),
+}, {
+    label = createElement("TextLabel", {
+        BackgroundTransparency = 1,
+        TextTransparency = modifyTransparency(0),
+    }),
+    gradient = createElement("UIGradient", {
+        Transparency = modifyTransparency(NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(1, 0.5),
+        })),
+    }),
 })
 ```
 

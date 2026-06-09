@@ -1,54 +1,64 @@
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
-local BaseAnimation = require(script.Parent.Parent.Base)
-local Promise = require(script.Parent.Parent.Parent.Promise)
-local LinearValue = require(script.Parent.Parent.Parent.Utility.LinearValue)
-local Symbols = require(script.Parent.Parent.Symbols)
+local BaseAnimation = require("../Base")
+local Promise = require("../../../Promise")
+local LinearValue = require("../../Utility/LinearValue")
+local Symbols = require("../Symbols")
 
 local Tween = {}
 Tween.__index = Tween
 
 type Callback<T> = (T) -> ()
 
-export type Tween = typeof(Tween.new())
 export type TweenProperties<T> = {
-	info: TweenInfo,
+	info: TweenInfo?,
 	startImmediate: T?,
 	start: T?,
 	target: T?,
 	delay: number?,
 }
 
+export type Tween<T> = {
+	props: TweenProperties<T>,
+	player: any?,
+	playing: boolean?,
+	listener: ((T) -> ())?,
+
+	Play: (self: Tween<T>, from: T?, immediate: boolean?) -> any,
+	Stop: (self: Tween<T>) -> (),
+	SetListener: (self: Tween<T>, listener: (T) -> ()) -> (),
+}
+
 local callbacks = {}
 local pooledUpdateConnection: RBXScriptConnection? = nil
 
 local function pooledUpdate(callback: Callback<number>): () -> ()
-    callbacks[callback] = true
+	callbacks[callback] = true
 
-    if not pooledUpdateConnection then
-        pooledUpdateConnection = RunService.RenderStepped:Connect(function(dt)
-            local ran = false
+	if not pooledUpdateConnection then
+		pooledUpdateConnection = RunService.RenderStepped:Connect(function(dt)
+			local ran = false
 
-            for nextCallback in callbacks do
-                ran = true
-                nextCallback(dt)
-            end
+			for nextCallback in callbacks do
+				ran = true
+				nextCallback(dt)
+			end
 
-            if not ran and pooledUpdateConnection then
-                pooledUpdateConnection:Disconnect()
-                pooledUpdateConnection = nil
-            end
-        end)
-    end
+			if not ran and pooledUpdateConnection then
+				pooledUpdateConnection:Disconnect()
+				pooledUpdateConnection = nil
+			end
+		end)
+	end
 
-    return function()
-        callbacks[callback] = nil
-        if next(callbacks) == nil and pooledUpdateConnection then
-            pooledUpdateConnection:Disconnect()
-            pooledUpdateConnection = nil
-        end
-    end
+	return function()
+		callbacks[callback] = nil
+		if next(callbacks) == nil and pooledUpdateConnection then
+			pooledUpdateConnection:Disconnect()
+			pooledUpdateConnection = nil
+		end
+	end
 end
 
 local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> nil)
@@ -141,8 +151,8 @@ function Tween.definition<T>(props: TweenProperties<T>)
 	}
 end
 
-function Tween.new<T>(props: TweenProperties<T>)
-	local self = setmetatable(BaseAnimation.new(), Tween) :: Tween
+function Tween.new<T>(props: TweenProperties<T>): Tween<T>
+	local self = setmetatable(BaseAnimation.new(), Tween) :: Tween<T>
 
 	self.props = props
 	self.player = nil

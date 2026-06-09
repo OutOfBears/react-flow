@@ -1,8 +1,8 @@
 local Symbol = require(script.Symbols)
 
 local Animations = {
-	Spring = require(script.Types.Spring),
-	Tween = require(script.Types.Tween),
+	Spring = require("@self/Types/Spring"),
+	Tween = require("@self/Types/Tween"),
 }
 
 local function fromDefinition(definitions)

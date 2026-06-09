@@ -1,11 +1,14 @@
-local Tween = require(script.Parent.Parent.Animations.Types.Tween)
-local React = require(script.Parent.Parent.React)
+local React = require("../../React")
+local Tween = require("../Animations/Types/Tween")
 
 local useMemo = React.useMemo
 local useEffect = React.useEffect
 local useBinding = React.useBinding
 
-local function useTween<T>(props: Tween.TweenProperties<T>)
+type TweenStart<T> = (subProps: Tween.TweenProperties<T>, immediate: boolean?) -> ()
+type TweenStop = () -> ()
+
+local function useTween<T>(props: Tween.TweenProperties<T>): (React.Binding<T?>, TweenStart<T>, TweenStop)
 	local binding, update = useBinding(props.start)
 
 	local controller = useMemo(function()
@@ -23,11 +26,11 @@ local function useTween<T>(props: Tween.TweenProperties<T>)
 				tween.props.startImmediate = subProps.startImmediate or tween.props.startImmediate
 				tween.props.delay = subProps.delay or tween.props.delay
 				tween:Play(subProps.start or binding:getValue(), immediate)
-			end,
+			end :: TweenStart<T>,
 
 			stop = function()
 				tween:Stop()
-			end,
+			end :: TweenStop,
 		}
 	end, {})
 

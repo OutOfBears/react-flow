@@ -1,7 +1,7 @@
-local Promise = require(script.Parent.Parent.Promise)
-local Animations = require(script.Parent.Parent.Animations)
+local React = require("../React")
+local Promise = require("../Promise")
+local Animations = require("../Animations")
 
-local React = require(script.Parent.Parent.React)
 local useMemo = React.useMemo
 
 export type SequenceProps = { { timestamp: number } | any }

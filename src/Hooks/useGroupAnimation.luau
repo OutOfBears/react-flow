@@ -1,4 +1,5 @@
-local React = require(script.Parent.Parent.React)
+local React = require("../React")
+
 local useBinding = React.useBinding
 local useMemo = React.useMemo
 

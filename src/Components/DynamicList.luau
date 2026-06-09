@@ -1,11 +1,11 @@
-local React = require(script.Parent.Parent.React)
-local ReactUtil = require(script.Parent.Parent.Utility.ReactUtil)
+local React = require("../React")
+local ReactUtil = require("../Utility/ReactUtil")
 
+local memo = React.memo
+local cloneElement = React.cloneElement
 local createElement = React.createElement
 local useState = React.useState
 local useEffect = React.useEffect
-local memo = React.memo
-local cloneElement = React.cloneElement
 
 -- DynamicList reconciles a dictionary of keyed children.
 -- Fixes: previous code wrapped ALL children with removal props each render causing churn & potential loops.
