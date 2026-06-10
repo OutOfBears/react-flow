@@ -5,7 +5,15 @@ local Animations = {
 	Tween = require(script.Types.Tween),
 }
 
-local function fromDefinition(definitions)
+export type AnimationFromDefinition<T> = {
+	listener: ((...any) -> ())?,
+	setListener: (AnimationFromDefinition<T>, ((...any) -> ())?) -> (),
+
+	play: (AnimationFromDefinition<T>, from: T?, immediate: boolean?) -> (),
+	stop: (AnimationFromDefinition<T>) -> (),
+}
+
+local function fromDefinition<T>(definitions): AnimationFromDefinition<T>
 	local animationSymbol, animationProps = definitions[1], definitions[2]
 	local animationType = Symbol[animationSymbol]
 

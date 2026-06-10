@@ -1,5 +1,7 @@
-local React = require(script.Parent.Parent.React)
+local React = require("../React")
+
 local useEffect = React.useEffect
+
 -- TODO: Remove this when we have a better way to subscribe to bindings
 local subscribeToBinding = React.__subscribeToBinding
 

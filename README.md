@@ -35,7 +35,10 @@
 - [Hooks](#-hooks)
   - [useSpring](#usespring)
   - [useTween](#usetween)
+  - [useSpringValue](#usespringvalue)
+  - [useTweenValue](#usetweenvalue)
   - [useGroupAnimation](#usegroupanimation)
+  - [useTransparencyModifier](#usetransparencymodifier)
 - [Supported Value Types](#-supported-value-types)
 - [Showcase](#-showcase)
 - [Contribution](#-contribution)
@@ -57,7 +60,7 @@ Add React-Flow to your `wally.toml` file:
 
 ```toml
 [dependencies]
-ReactFlow = "outofbears/react-flow@0.4.0"
+ReactFlow = "outofbears/react-flow@0.5.0"
 ```
 
 Then install with:
@@ -169,6 +172,82 @@ return createElement("Frame", {
 
 ---
 
+### `useSpringValue`
+
+Declarative variant of [`useSpring`](#usespring). Instead of returning an update function, the hook watches the `target`, `speed`, and `damper` props on each render and re-targets the spring automatically when they change. Use this when your spring goal is a direct function of React state and you don't need imperative control.
+
+The `start` prop seeds the initial value only — it is **not** re-applied on subsequent renders, so the spring smoothly retargets from its current value rather than snapping back to the start.
+
+**Arguments:**
+- **config:** A configuration table with the following properties:
+  - **start:** Initial value of the animation (used only on mount)
+  - **target:** Current goal — changes between renders are followed automatically
+  - **speed:** Spring stiffness (live-updatable)
+  - **damper:** Damping ratio (live-updatable)
+
+**Returns:**  
+A binding that updates as the animation progresses. No update or stop function — control is purely via props.
+
+**Example:**
+```lua
+local useSpringValue = ReactFlow.useSpringValue
+
+-- Inside your component:
+local hovered, setHovered = React.useState(false)
+
+local color = useSpringValue({
+    start = Color3.fromRGB(150, 150, 150),
+    target = if hovered then Color3.fromRGB(255, 255, 255) else Color3.fromRGB(150, 150, 150),
+
+    speed = 20,
+    damper = 0.8,
+})
+
+return createElement("TextButton", {
+    BackgroundColor3 = color,
+    [React.Event.MouseEnter] = function() setHovered(true) end,
+    [React.Event.MouseLeave] = function() setHovered(false) end,
+})
+```
+
+---
+
+### `useTweenValue`
+
+Declarative variant of [`useTween`](#usetween). The hook watches the `target` prop on each render and replays the tween from the binding's current value to the new target. Use this when your tween goal is driven by React state.
+
+As with `useSpringValue`, the `start` prop is only used on mount — re-renders tween from the current animated value, not from `start`.
+
+**Arguments:**
+- **config:** A configuration table with the following properties:
+  - **start:** Initial value of the animation (used only on mount)
+  - **target:** Current goal — changes between renders trigger a replay
+  - **info:** `TweenInfo` instance
+  - **delay:** Optional delay before the tween starts
+
+**Returns:**  
+A binding that updates as the animation progresses.
+
+**Example:**
+```lua
+local useTweenValue = ReactFlow.useTweenValue
+
+-- Inside your component:
+local visible, setVisible = React.useState(false)
+
+local transparency = useTweenValue({
+    start = 1,
+    target = if visible then 0 else 1,
+    info = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+})
+
+return createElement("Frame", {
+    BackgroundTransparency = transparency,
+})
+```
+
+---
+
 ### `useGroupAnimation`
 
 Creates a group of animations that are managed together as a single entity. With `useGroupAnimation`, you can define multiple animation states by combining the following animation primitives: `useAnimation`, `useSpringAnimation`, `useSequenceAnimation`, and `useTweenAnimation`. This allows you to define complex animation states and switch between them seamlessly at runtime, providing an elegant way to handle UI state transitions.
@@ -226,6 +305,56 @@ return createElement("Frame", {
     Size = UDim2.new(0, 100, 0, 100),
     BackgroundTransparency = animations.transparency,
     Position = animations.position,
+})
+```
+
+---
+
+### `useTransparencyModifier`
+
+Composes a transparency binding with a modifier so transparency values can be uniformly faded toward fully transparent. Useful for hover, disabled, or fade-in/out states that need to dim a whole element (or subtree) without rewriting every individual transparency value.
+
+The modifier is applied multiplicatively against visibility: a modifier of `0` leaves transparency untouched, a modifier of `1` makes the element fully transparent, and values in between blend smoothly. Both plain `number` transparencies and `NumberSequence` transparencies (e.g. for `UIGradient.Transparency`) are supported, as are static values and bindings.
+
+**Arguments:**
+- **modifier:** A binding holding a `number` between `0` and `1` representing the additional transparency to apply. A value of `0` is a no-op; `1` fully hides the target.
+
+**Returns:**  
+A function that takes a transparency value and returns a binding with the modifier applied. The returned function can be called repeatedly for each property you want to modify, and accepts:
+- A `number` (e.g. `BackgroundTransparency = 0.2`)
+- A `NumberSequence` (e.g. for `UIGradient.Transparency`)
+- A `Binding` of either of the above (animated transparency continues to update with the modifier applied)
+- `nil` (treated as `0`)
+
+**Example:**
+```lua
+local useTransparencyModifier = ReactFlow.useTransparencyModifier
+local useSpring = ReactFlow.useSpring
+
+-- Inside your component:
+local fade = useSpring({
+    start = 1,                  -- Start fully hidden
+    target = visible and 0 or 1,-- 0 = fully visible, 1 = fully hidden
+
+    speed = 18,
+    damper = 1,
+})
+
+local modifyTransparency = useTransparencyModifier(fade)
+
+return createElement("Frame", {
+    BackgroundTransparency = modifyTransparency(0.2),
+}, {
+    label = createElement("TextLabel", {
+        BackgroundTransparency = 1,
+        TextTransparency = modifyTransparency(0),
+    }),
+    gradient = createElement("UIGradient", {
+        Transparency = modifyTransparency(NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(1, 0.5),
+        })),
+    }),
 })
 ```
 

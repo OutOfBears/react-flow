@@ -11,7 +11,11 @@ return {
 	useSpring = require(script.Hooks.useSpring),
 	useTween = require(script.Hooks.useTween),
 
+	useSpringValue = require(script.Hooks.useSpringValue),
+	useTweenValue = require(script.Hooks.useTweenValue),
+
 	useBindings = require(script.Hooks.useBindings),
+	useTransparencyModifier = require(script.Hooks.useTransparencyModifier),
 
 	TransitionFragment = require(script.Components.TransitionFragment),
 	DynamicList = require(script.Components.DynamicList),

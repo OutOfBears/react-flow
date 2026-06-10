@@ -1,5 +1,5 @@
-local React = require(script.Parent.Parent.React)
-local ReactUtil = require(script.Parent.Parent.Utility.ReactUtil)
+local React = require("../React")
+local ReactUtil = require("../Utility/ReactUtil")
 
 local createElement = React.createElement
 local useState = React.useState

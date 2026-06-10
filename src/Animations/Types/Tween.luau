@@ -1,83 +1,30 @@
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
-local BaseAnimation = require(script.Parent.Parent.Base)
-local Promise = require(script.Parent.Parent.Parent.Promise)
-local LinearValue = require(script.Parent.Parent.Parent.Utility.LinearValue)
-local Symbols = require(script.Parent.Parent.Symbols)
+local BaseAnimation = require("../Base")
+local Promise = require("../../Promise")
+local LinearValue = require("../../Utility/LinearValue")
+local PooledConnection = require("../../Utility/PooledConnection")
+local Symbols = require("../Symbols")
+local Types = require("../../Types")
 
-local Tween = {}
-Tween.__index = Tween
+export type Tween<T> = BaseAnimation.BaseAnimation & {
+	props: Types.TweenProperties<T>,
+	player: any?,
+	playing: boolean?,
 
-type Callback<T> = (T) -> ()
-
-export type Tween = typeof(Tween.new())
-export type TweenProperties<T> = {
-	info: TweenInfo,
-	startImmediate: T?,
-	start: T?,
-	target: T?,
-	delay: number?,
+	play: (self: Tween<T>, from: T?, immediate: boolean?) -> any,
+	stop: (self: Tween<T>) -> (),
 }
 
-local callbacks = {}
-local pooledUpdateConnection: RBXScriptConnection? = nil
+local renderSteppedPool = PooledConnection(RunService.RenderStepped)
 
-local function pooledUpdate(callback: Callback<number>): () -> ()
-    callbacks[callback] = true
-
-    if not pooledUpdateConnection then
-        pooledUpdateConnection = RunService.RenderStepped:Connect(function(dt)
-            local ran = false
-
-            for nextCallback in callbacks do
-                ran = true
-                nextCallback(dt)
-            end
-
-            if not ran and pooledUpdateConnection then
-                pooledUpdateConnection:Disconnect()
-                pooledUpdateConnection = nil
-            end
-        end)
-    end
-
-    return function()
-        callbacks[callback] = nil
-        if next(callbacks) == nil and pooledUpdateConnection then
-            pooledUpdateConnection:Disconnect()
-            pooledUpdateConnection = nil
-        end
-    end
-end
-
-local function playTween(tweenInfo, callback: (number) -> nil, completed: () -> nil)
-	local numberValue = Instance.new("NumberValue")
-	numberValue.Value = 0
-	numberValue:GetPropertyChangedSignal("Value"):Connect(function()
-		callback(numberValue.Value)
-	end)
-
-	local tween = TweenService:Create(numberValue, tweenInfo, {
-		Value = 1,
-	})
-
-	tween.Completed:Once(function()
-		numberValue:Destroy()
-		completed()
-	end)
-
-	return function()
-		callback(0)
-		tween:Play()
-	end, function()
-		numberValue:Destroy()
-		tween:Cancel()
-	end
-end
-
-local function playTween2(tweenInfo: TweenInfo, callback: Callback<number>, completed: Callback<unknown>)
-	local disconnect
+local function playTween(
+	tweenInfo: TweenInfo,
+	callback: Types.TweenCallback<number>,
+	completed: Types.TweenCallback<unknown>
+)
+	local connection: PooledConnection.PooledConnection?
 
 	local repeats = 0
 	local elapsed = 0
@@ -94,9 +41,9 @@ local function playTween2(tweenInfo: TweenInfo, callback: Callback<number>, comp
 	assert(tweenReverses == false, "Tween reverses is not supported")
 
 	local function stop()
-		if disconnect then
-			disconnect()
-			disconnect = nil
+		if connection then
+			connection:Disconnect()
+			connection = nil
 		end
 	end
 
@@ -108,8 +55,8 @@ local function playTween2(tweenInfo: TweenInfo, callback: Callback<number>, comp
 			elapsed = -tweenDelay
 		end
 
-		if not disconnect then
-			disconnect = pooledUpdate(function(dt)
+		if not connection then
+			connection = renderSteppedPool:Connect(function(dt)
 				elapsed += dt
 
 				local alpha = math.clamp(elapsed / tweenTime, 0, 1)
@@ -134,25 +81,16 @@ local function playTween2(tweenInfo: TweenInfo, callback: Callback<number>, comp
 	return play, stop
 end
 
-function Tween.definition<T>(props: TweenProperties<T>)
+local function definition<T>(props: Types.TweenProperties<T>)
 	return {
 		[1] = Symbols.Tween,
 		[2] = props,
 	}
 end
 
-function Tween.new<T>(props: TweenProperties<T>)
-	local self = setmetatable(BaseAnimation.new(), Tween) :: Tween
-
-	self.props = props
-	self.player = nil
-
-	return self
-end
-
-function Tween:Play(from: any?, immediate: boolean?)
+local function play<T>(self: Tween<T>, from: any?, immediate: boolean?)
 	if self.playing then
-		self:Stop()
+		self:stop()
 	end
 
 	local tweenInfo = self.props.info :: TweenInfo
@@ -183,8 +121,8 @@ function Tween:Play(from: any?, immediate: boolean?)
 		return Promise.resolve()
 	end
 
-	local fromValue = LinearValue.fromValue(baseFromValue)
-	local toValue = LinearValue.fromValue(baseToValue)
+	local fromValue = LinearValue(baseFromValue)
+	local toValue = LinearValue(baseToValue)
 
 	if immediate then
 		self.listener(baseToValue)
@@ -196,8 +134,8 @@ function Tween:Play(from: any?, immediate: boolean?)
 	end
 
 	local animation = Promise.new(function(resolve, _, onCancel)
-		local play, cancel = playTween2(tweenInfo, function(value)
-			local newValue = fromValue:Lerp(toValue, value):ToValue()
+		local playTweenAnimation, cancel = playTween(tweenInfo, function(value)
+			local newValue = fromValue:lerp(toValue, value):toValue()
 			self.listener(newValue)
 		end, function()
 			self.playing = false
@@ -208,14 +146,14 @@ function Tween:Play(from: any?, immediate: boolean?)
 		onCancel(cancel)
 
 		if not delayTime then
-			play()
+			playTweenAnimation()
 		else
 			if startImmediately then
 				self.listener(baseFromValue)
 			end
 
 			task.wait(delayTime)
-			play()
+			playTweenAnimation()
 		end
 	end)
 
@@ -225,7 +163,7 @@ function Tween:Play(from: any?, immediate: boolean?)
 	return animation
 end
 
-function Tween:Stop()
+local function stop<T>(self: Tween<T>)
 	if not self.playing then
 		return
 	end
@@ -238,4 +176,19 @@ function Tween:Stop()
 	self.playing = false
 end
 
-return Tween
+local function Tween<T>(props: Types.TweenProperties<T>): Tween<T>
+	local object = BaseAnimation.new() :: Tween<T>
+
+	object.props = props
+	object.player = nil
+
+	object.play = play
+	object.stop = stop
+
+	return object
+end
+
+return {
+	new = Tween,
+	definition = definition,
+}
