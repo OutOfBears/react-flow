@@ -1,12 +1,10 @@
 local EPSILON = 1e-2
 
 local React = require("../React")
+local Types = require("../Types")
 
 local useBindings = require("./useBindings")
 local useBinding = React.useBinding
-
-export type Binding = React.Binding<any>
-type TransparencyValue = number | NumberSequence | Binding | nil
 
 local function modifyNumberTransparency(modifier: number, transparency: number): number
 	local value = 1 - ((1 - transparency) * (1 - modifier))
@@ -35,10 +33,10 @@ local function modifyNumberSequenceTransparency(modifier: number, sequence: Numb
 	return NumberSequence.new(newKeypoints)
 end
 
-local function useTransparencyModifier(modifier: Binding): (TransparencyValue) -> TransparencyValue
-	return function(transparency: TransparencyValue): Binding
+local function useTransparencyModifier(modifier: Types.Binding): (Types.TransparencyValue) -> Types.TransparencyValue
+	return function(transparency: Types.TransparencyValue): Types.Binding
 		local isTransparencyBinding = type(transparency) == "table" and transparency.getValue
-		local baseTransparency = isTransparencyBinding and (transparency :: Binding):getValue() or transparency or 0
+		local baseTransparency = isTransparencyBinding and (transparency :: Types.Binding):getValue() or transparency or 0
 
 		local emptyBinding = useBinding(nil)
 		local modifiedTransparency, updateModifiedTransparency = useBinding(baseTransparency)

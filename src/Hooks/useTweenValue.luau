@@ -1,11 +1,12 @@
 local React = require("../../React")
 local Tween = require("../Animations/Types/Tween")
+local Types = require("../Types")
 
 local useBinding = React.useBinding
 local useMemo = React.useMemo
 local useEffect = React.useEffect
 
-local function useTweenValue<T>(props: Tween.TweenProperties<T>): React.Binding<T?>
+local function useTweenValue<T>(props: Types.TweenProperties<T>): React.Binding<T?>
 	local initial = props.start or props.target
 	local binding, update = useBinding(initial)
 
@@ -18,11 +19,11 @@ local function useTweenValue<T>(props: Tween.TweenProperties<T>): React.Binding<
 		})
 	end, {})
 
-	tween:SetListener(update)
+	tween:setListener(update)
 
 	useEffect(function()
 		return function()
-			tween:Stop()
+			tween:stop()
 		end
 	end, {})
 
@@ -36,7 +37,7 @@ local function useTweenValue<T>(props: Tween.TweenProperties<T>): React.Binding<
 		tween.props.delay = props.delay
 		tween.props.start = binding:getValue()
 
-		tween:Play(binding:getValue())
+		tween:play(binding:getValue())
 	end, { props.target } :: { any })
 
 	return binding

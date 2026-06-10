@@ -1,14 +1,12 @@
 local React = require("../../React")
 local Tween = require("../Animations/Types/Tween")
+local Types = require("../Types")
 
 local useMemo = React.useMemo
 local useEffect = React.useEffect
 local useBinding = React.useBinding
 
-type TweenStart<T> = (subProps: Tween.TweenProperties<T>, immediate: boolean?) -> ()
-type TweenStop = () -> ()
-
-local function useTween<T>(props: Tween.TweenProperties<T>): (React.Binding<T?>, TweenStart<T>, TweenStop)
+local function useTween<T>(props: Types.TweenProperties<T>): (React.Binding<T?>, Types.TweenStart<T>, Types.TweenStop)
 	local binding, update = useBinding(props.start)
 
 	local controller = useMemo(function()
@@ -17,7 +15,7 @@ local function useTween<T>(props: Tween.TweenProperties<T>): (React.Binding<T?>,
 		return {
 			tween = tween,
 
-			start = function(subProps: Tween.TweenProperties<T>, immediate: boolean?)
+			start = function(subProps: Types.TweenProperties<T>, immediate: boolean?)
 				assert(typeof(subProps) == "table", "useTween expects a table of properties")
 
 				tween.props.info = subProps.info or tween.props.info
@@ -25,12 +23,12 @@ local function useTween<T>(props: Tween.TweenProperties<T>): (React.Binding<T?>,
 				tween.props.target = subProps.target or tween.props.target
 				tween.props.startImmediate = subProps.startImmediate or tween.props.startImmediate
 				tween.props.delay = subProps.delay or tween.props.delay
-				tween:Play(subProps.start or binding:getValue(), immediate)
-			end :: TweenStart<T>,
+				tween:play(subProps.start or binding:getValue(), immediate)
+			end :: Types.TweenStart<T>,
 
 			stop = function()
-				tween:Stop()
-			end :: TweenStop,
+				tween:stop()
+			end :: Types.TweenStop,
 		}
 	end, {})
 
@@ -40,7 +38,7 @@ local function useTween<T>(props: Tween.TweenProperties<T>): (React.Binding<T?>,
 		end
 	end, {})
 
-	controller.tween:SetListener(update)
+	controller.tween:setListener(update)
 
 	return binding, controller.start, controller.stop
 end

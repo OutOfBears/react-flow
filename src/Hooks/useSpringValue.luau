@@ -1,34 +1,34 @@
 local React = require("../../React")
 local SpringValue = require("../Utility/SpringValue")
-local Spring = require("../Animations/Types/Spring")
+local Types = require("../Types")
 
 local useBinding = React.useBinding
 local useMemo = React.useMemo
 local useEffect = React.useEffect
 
-local function useSpringValue<T>(props: Spring.SpringProperties<T>): React.Binding<T?>
+local function useSpringValue<T>(props: Types.SpringProperties<T>): React.Binding<T?>
 	local initial = props.start or props.target
 	local binding, update = useBinding(initial)
 
 	local spring = useMemo(function()
-		return SpringValue.new(initial, props.speed, props.damper)
+		return SpringValue(initial, props.speed, props.damper)
 	end, {})
 
-	spring:SetUpdater(update)
+	spring:setUpdater(update)
 
 	useEffect(function()
 		return function()
-			spring:Stop()
+			spring:stop()
 		end
 	end, {})
 
 	useEffect(function()
 		if props.speed then
-			spring:SetSpeed(props.speed)
+			spring:setSpeed(props.speed)
 		end
 
 		if props.damper then
-			spring:SetDamper(props.damper)
+			spring:setDamper(props.damper)
 		end
 	end, { props.speed, props.damper } :: { any })
 
@@ -37,10 +37,10 @@ local function useSpringValue<T>(props: Spring.SpringProperties<T>): React.Bindi
 			return
 		end
 
-		spring:SetGoal(props.target)
+		spring:setGoal(props.target)
 
-		if not spring:Playing() then
-			spring:Run()
+		if not spring:playing() then
+			spring:run()
 		end
 	end, { props.target } :: { any })
 

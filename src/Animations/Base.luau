@@ -1,14 +1,21 @@
-local BaseAnimation = {}
+export type BaseAnimation = {
+	listener: ((any) -> ())?,
+	setListener: (BaseAnimation, (any) -> ()?) -> (),
+}
 
-function BaseAnimation.new()
-	local self = {}
-
-	self.listener = nil
-	self.SetListener = function(_, listener: (any) -> ())
-		self.listener = listener
-	end
-
-	return self
+local function setListener(self: BaseAnimation, callback: ((any) -> ())?)
+	self.listener = callback
 end
 
-return BaseAnimation
+local function BaseAnimation()
+	local object = {}
+
+	object.listener = nil
+	object.setListener = setListener
+
+	return object
+end
+
+return {
+	new = BaseAnimation,
+}

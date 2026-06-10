@@ -2,55 +2,34 @@ local BaseAnimation = require("../Base")
 local Promise = require("../../Promise")
 local SpringValue = require("../../Utility/SpringValue")
 local Symbols = require("../Symbols")
+local Types = require("../../Types")
 
-local Spring = {}
-Spring.__index = Spring
-
-export type SpringProperties<T> = {
-	damper: number?,
-	speed: number?,
-	start: T?,
-	target: T?,
-	force: T?,
-	delay: number?,
-}
-
-export type Spring<T> = {
-	props: SpringProperties<T>,
-	player: any?,
-	playing: boolean?,
-	listener: ((T) -> ())?,
+export type Spring<T> = BaseAnimation.BaseAnimation & {
 	_oldSpring: any?,
 
-	Play: (self: Spring<T>, from: T?, immediate: boolean?) -> any,
-	Stop: (self: Spring<T>) -> (),
-	SetListener: (self: Spring<T>, listener: (T) -> ()) -> (),
+	props: Types.SpringProperties<T>,
+	player: any?,
+	playing: boolean?,
+
+	play: (self: Spring<T>, from: T?, immediate: boolean?) -> any,
+	stop: (self: Spring<T>) -> (),
 }
 
-function Spring.definition<T>(props: SpringProperties<T>)
+local function definition<T>(props: Types.SpringProperties<T>)
 	return {
 		[1] = Symbols.Spring,
 		[2] = props,
 	}
 end
 
-function Spring.new<T>(props: SpringProperties<T>): Spring<T>
-	local self = setmetatable(BaseAnimation.new(), Spring) :: Spring<T>
-
-	self.props = props
-	self.player = nil
-
-	return self
-end
-
-function Spring:Play(from: any?, immediate: boolean?)
+local function play<T>(self: Spring<T>, from: T?, immediate: boolean?)
 	if self.playing then
-		self:Stop()
+		self:stop()
 	end
 
-	local baseFromValue = self.props.start or from :: any
-	local baseToValue = self.props.target :: any
-	local force = self.props.force :: any
+	local baseFromValue = self.props.start or from :: T
+	local baseToValue = self.props.target :: T
+	local force = self.props.force :: T?
 
 	assert(baseFromValue, "No start value provided")
 	assert(baseToValue, "No target value provided")
@@ -59,27 +38,27 @@ function Spring:Play(from: any?, immediate: boolean?)
 		return Promise.resolve()
 	end
 
-	local newSpring = SpringValue.new(baseFromValue, self.props.speed, self.props.damper)
-	newSpring:SetImmediate(immediate)
-	newSpring:SetGoal(baseToValue)
-	newSpring:SetDelay(self.props.delay)
+	local newSpring = SpringValue(baseFromValue, self.props.speed, self.props.damper)
+	newSpring:setImmediate(immediate)
+	newSpring:setGoal(baseToValue)
+	newSpring:setDelay(self.props.delay)
 
-	local oldVelocity = self._oldSpring and self._oldSpring:GetVelocity()
+	local oldVelocity = self._oldSpring and self._oldSpring:getVelocity()
 	if oldVelocity then
-		newSpring:Impulse(oldVelocity)
+		newSpring:impulse(oldVelocity)
 	end
 
 	if force then
-		newSpring:Impulse(force)
+		newSpring:impulse(force)
 	end
 
 	if self._oldSpring then
-		self._oldSpring:Destroy()
+		self._oldSpring:destroy()
 	end
 
-	local animation = newSpring:Run(function()
+	local animation = newSpring:run(function()
 		if self.listener then
-			self.listener(newSpring:GetValue())
+			self.listener(newSpring:getValue())
 		end
 	end)
 
@@ -90,7 +69,7 @@ function Spring:Play(from: any?, immediate: boolean?)
 	return animation
 end
 
-function Spring:Stop()
+local function stop<T>(self: Spring<T>)
 	if not self.playing then
 		return
 	end
@@ -103,4 +82,19 @@ function Spring:Stop()
 	self.playing = false
 end
 
-return Spring
+local function Spring<T>(props: Types.SpringProperties<T>): Spring<T>
+	local object = BaseAnimation.new() :: Spring<T>
+
+	object.props = props
+	object.player = nil
+
+	object.play = play
+	object.stop = stop
+
+	return object
+end
+
+return {
+	new = Spring,
+	definition = definition,
+}

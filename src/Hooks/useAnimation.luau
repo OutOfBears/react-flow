@@ -1,53 +1,33 @@
 local React = require("../React")
 local Promise = require("../Promise")
 local Animations = require("../Animations")
+local Types = require("../Types")
 
 local useMemo = React.useMemo
 
-export type AnimationProps = {
-	[string]: any,
+export type SingleAnimation = {
+	playing: boolean,
+	listener: Types.Listener?,
+	animations: { [string]: Animations.AnimationFromDefinition<any> },
+	setListener: (SingleAnimation, Types.Listener?) -> (),
+	play: (SingleAnimation, Types.AnimationProps, boolean?) -> (),
+	stop: (SingleAnimation) -> (),
 }
 
-local Animation = {}
-Animation.__index = Animation
-
-function Animation.new(props: AnimationProps)
-	local self = setmetatable({}, Animation)
-	local animations = {}
-
-	for name, animation in props do
-		animations[name] = Animations.fromDefinition(animation)
-	end
-
-	self.playing = false
-	self.listener = nil
-	self.animation = animations
-
-	for name, animation in animations do
-		animation:SetListener(function(value)
-			if self.listener then
-				self.listener(name, value)
-			end
-		end)
-	end
-
-	return self
-end
-
-function Animation:SetListener(listener: (string, any) -> ())
+local function setListener(self: SingleAnimation, listener: Types.Listener?)
 	self.listener = listener
 end
 
-function Animation:Play(fromProps: AnimationProps, immediate: boolean?)
+local function play(self: SingleAnimation, fromProps: Types.AnimationProps, immediate: boolean?)
 	if self.playing then
-		self:Stop()
+		self:stop()
 	end
 
 	local animation = Promise.new(function(resolve, _, onCancel)
 		local promises = {}
 
 		for name, animatable in self.animation do
-			local animationPromise = animatable:Play(fromProps[name], immediate)
+			local animationPromise = animatable:play(fromProps[name], immediate)
 			table.insert(promises, animationPromise)
 		end
 
@@ -68,7 +48,7 @@ function Animation:Play(fromProps: AnimationProps, immediate: boolean?)
 	return animation
 end
 
-function Animation:Stop()
+local function stop(self: SingleAnimation)
 	if not self.playing then
 		return
 	end
@@ -81,10 +61,37 @@ function Animation:Stop()
 	self.playing = false
 end
 
-local function useAnimation(props: AnimationProps)
+local function Animation(props: Types.AnimationProps)
+	local object = {} :: SingleAnimation
+	local animations = {} :: { [string]: Animations.AnimationFromDefinition<any> }
+
+	object.playing = false
+	object.listener = nil
+	object.animation = animations
+
+	object.play = play
+	object.stop = stop
+	object.setListener = setListener
+
+	for name, animation in props do
+		animations[name] = Animations.fromDefinition(animation)
+	end
+
+	for name, animation in animations do
+		animation:setListener(function(value)
+			if object.listener then
+				object.listener(name, value)
+			end
+		end)
+	end
+
+	return object
+end
+
+local function useAnimation(props: Types.AnimationProps)
 	return useMemo(function()
-		return Animation.new(props)
-	end, {})
+		return Animation(props)
+	end, {}) :: SingleAnimation
 end
 
 return useAnimation

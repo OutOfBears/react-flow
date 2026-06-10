@@ -1,79 +1,27 @@
 local React = require("../React")
+local Types = require("../Types")
 
 local useBinding = React.useBinding
 local useMemo = React.useMemo
 
-local GroupAnimationController = {}
-GroupAnimationController.__index = GroupAnimationController
-
-type StateSetters = {
-	[string]: (any) -> nil,
-}
-
 export type Animation = {
-	Play: (DefaultProperties, boolean?) -> Animation,
-	Stop: () -> nil,
+	play: (Types.DefaultProperties, boolean?) -> Animation,
+	stop: () -> nil,
+}
+export type GroupAnimation = { [string]: Animation }
+export type GroupAnimationController = {
+	currentstate: string,
+	animations: GroupAnimation,
+	state: Types.DefaultProperties,
+	setters: Types.StateSetters,
+	play: (GroupAnimationController, string, boolean?) -> (),
+	stop: (GroupAnimationController) -> (),
+	updateSetters: (GroupAnimationController, Types.StateSetters) -> (),
 }
 
-export type GroupAnimation = {
-	[string]: Animation,
-}
-
-export type DefaultProperties = {
-	[string]: any,
-}
-
-function GroupAnimationController.new(props: GroupAnimation, default: DefaultProperties, setters: StateSetters)
-	local self = setmetatable({}, GroupAnimationController)
-
-	self.currentState = "Default"
-	self.animations = props
-
-	self.state = default
-	self.setters = setters
-
-	for state, animation in props do
-		animation:SetListener(function(name, value)
-			if self.currentState ~= state then
-				return
-			end
-
-			self.state[name] = value
-			self.setters[name](value)
-		end)
-	end
-
-	return self
-end
-
-function GroupAnimationController:Play(newState: string, immediate: boolean?)
-	local animation = self.animations[newState]
-	assert(animation, `No animation found for state {newState}`)
-
-	self.currentState = newState
-
-	if self.currentAnimation then
-		self.currentAnimation:Stop()
-	end
-
-	self.currentAnimation = animation
-	animation:Play(self.state, immediate)
-end
-
-function GroupAnimationController:Stop()
-	if self.currentAnimation then
-		self.currentAnimation:Stop()
-		self.currentAnimation = nil
-	end
-end
-
-function GroupAnimationController:UpdateSetters(setters: StateSetters)
-	self.setters = setters
-end
-
-local function getStateContainer(defaults: DefaultProperties)
+local function getStateContainer(defaults: Types.DefaultProperties)
 	local setters = {}
-	local values = {}
+	local values = {} :: { [string]: unknown }
 
 	for name, value in defaults do
 		local binding, updateBinding = useBinding(value)
@@ -85,30 +33,86 @@ local function getStateContainer(defaults: DefaultProperties)
 	return setters, values
 end
 
-local function useGroupAnimation(props: GroupAnimation, default: DefaultProperties)
+local function updateSetters(self: GroupAnimationController, setters: Types.StateSetters)
+	self.setters = setters
+end
+
+local function play(self: GroupAnimationController, newState: string, immediate: boolean?)
+	local animation = self.animations[newState]
+	assert(animation, `No animation found for state {newState}`)
+
+	self.currentState = newState
+
+	if self.currentAnimation then
+		self.currentAnimation:stop()
+	end
+
+	self.currentAnimation = animation
+	animation:play(self.state, immediate)
+end
+
+local function stop(self: GroupAnimationController)
+	if self.currentAnimation then
+		self.currentAnimation:stop()
+		self.currentAnimation = nil
+	end
+end
+
+local function GroupAnimationController(props: GroupAnimation, default: Types.DefaultProperties, setters: Types.StateSetters)
+	local object = {} :: GroupAnimationController
+
+	object.currentState = "Default"
+	object.animations = props
+
+	object.state = default
+	object.setters = setters
+
+	object.play = play
+	object.stop = stop
+	object.updateSetters = updateSetters
+
+	for state, animation in props do
+		animation:setListener(function(name, value)
+			if object.currentState ~= state then
+				return
+			end
+
+			object.state[name] = value
+			object.setters[name](value)
+		end)
+	end
+
+	return object
+end
+
+local function useGroupAnimation(props: GroupAnimation, default: Types.DefaultProperties)
 	local defaults = useMemo(function()
 		return default
 	end, {})
 
 	local setters, values = getStateContainer(defaults)
 	local controller = useMemo(function()
-		local newController = GroupAnimationController.new(props, defaults, setters)
+		local newController = GroupAnimationController(props, defaults, setters)
 
 		return {
-			updateSetters = function(newSetters: StateSetters)
-				newController:UpdateSetters(newSetters)
+			updateSetters = function(newSetters: Types.StateSetters)
+				newController:updateSetters(newSetters)
 			end,
 
 			play = function(newState: string, immediate: boolean?)
 				assert(typeof(newState) == "string", "useGroupAnimation expects a string 'state'")
-				newController:Play(newState, immediate)
+				newController:play(newState, immediate)
 			end,
 
 			stop = function()
-				newController:Stop()
+				newController:stop()
 			end,
 		}
-	end, {})
+	end, {}) :: {
+		updateSetters: (setters: Types.StateSetters) -> (),
+		play: (state: string, immediate: boolean?) -> (),
+		stop: () -> (),
+	}
 
 	controller.updateSetters(setters)
 

@@ -1,212 +1,84 @@
 local RunService = game:GetService("RunService")
 
 local LinearValue = require("./LinearValue")
+local PooledConnection = require("./PooledConnection")
 local Promise = require("../Promise")
+local Types = require("../Types")
 
-local SpringValue = {}
-local SpringValues = {}
-local pooledUpdateConnection: RBXScriptConnection? = nil
-SpringValue.__index = SpringValue
+export type SpringValue<T> = {
+	current: LinearValue.LinearValue<T>,
+	goal: LinearValue.LinearValue<T>,
+	velocities: { number },
+	speed: number,
+	damper: number,
+	immediate: boolean,
+	updater: ((any) -> ())?,
+	delay: number?,
+
+	destroy: (SpringValue<T>) -> (),
+	impulse: (SpringValue<T>, Types.LinearValueType) -> (),
+	getVelocity: (SpringValue<T>) -> T,
+	setGoal: (SpringValue<T>, Types.LinearValueType) -> (),
+	setSpeed: (SpringValue<T>, number) -> (),
+	setDamper: (SpringValue<T>, number) -> (),
+	setImmediate: (SpringValue<T>, boolean) -> (),
+	setDelay: (SpringValue<T>, number?) -> (),
+	setUpdater: (SpringValue<T>, (any) -> ()) -> (),
+	getGoal: (SpringValue<T>) -> T,
+	setValue: (SpringValue<T>, Types.LinearValueType) -> (),
+	getValue: (SpringValue<T>) -> T,
+	update: (SpringValue<T>, number) -> boolean,
+	playing: (SpringValue<T>) -> boolean,
+	stop: (SpringValue<T>) -> (),
+	run: (SpringValue<T>, ((any) -> ())?) -> any,
+}
 
 local EPSILON = 1e-2
 
+local activeSprings = {}
+local renderSteppedPool = PooledConnection(RunService.RenderStepped)
+local tickConnection: PooledConnection.PooledConnection? = nil
+
+local SpringValue
+
+local function tick(dt: number)
+	local empty = true
+
+	for spring, resolve in activeSprings do
+		empty = false
+
+		local didUpdate = spring:update(dt)
+		local value = spring:getValue()
+
+		if spring.updater then
+			spring.updater(value)
+		end
+
+		if not didUpdate then
+			activeSprings[spring] = nil
+			resolve()
+		end
+	end
+
+	if empty and tickConnection then
+		tickConnection:Disconnect()
+		tickConnection = nil
+	end
+end
+
 local function ensurePooledUpdate()
-	if pooledUpdateConnection then
+	if tickConnection then
 		return
 	end
 
-	pooledUpdateConnection = RunService.RenderStepped:Connect(function(dt: number)
-		local empty = true
-
-		for spring, resolve in pairs(SpringValues) do
-			empty = false
-
-			local didUpdate = spring:Update(dt)
-			local value = spring:GetValue()
-
-			if spring._updater then
-				spring._updater(value)
-			end
-
-			if not didUpdate then
-				SpringValues[spring] = nil
-				resolve()
-			end
-		end
-
-		if empty and pooledUpdateConnection then
-			pooledUpdateConnection:Disconnect()
-			pooledUpdateConnection = nil
-		end
-	end)
-end
-
-function SpringValue.new(initial: LinearValue.LinearValueType, speed: number?, damper: number?)
-	local target = LinearValue.fromValue(initial)
-	local velocity = {}
-
-	for i = 1, #target._value do
-		velocity[i] = 0
-	end
-
-	return setmetatable({
-		_current = target,
-		_goal = target,
-		_velocities = velocity,
-		_speed = speed or 1,
-		_damper = damper or 1,
-		_immediate = false,
-		_updater = nil,
-		_delay = nil :: number?,
-	}, SpringValue)
-end
-
-function SpringValue:Destroy()
-	SpringValues[self] = nil
-	setmetatable(self, nil)
-end
-
-function SpringValue:Impulse(impulse: LinearValue.LinearValueType)
-	local impulseValues = LinearValue.fromValue(impulse)._value
-	for i = 1, #impulseValues do
-		self._velocities[i] = (self._velocities[i] or 0) + impulseValues[i]
-	end
-end
-
-function SpringValue:GetVelocity()
-	return LinearValue.new(self._current._ccstr, unpack(self._velocities)):ToValue()
-end
-
-function SpringValue:SetGoal(goal: LinearValue.LinearValueType)
-	self._goal = LinearValue.fromValue(goal)
-end
-
-function SpringValue:SetSpeed(speed: number)
-	self._speed = speed
-end
-
-function SpringValue:SetDamper(damper: number)
-	self._damper = damper
-end
-
-function SpringValue:SetImmediate(immediate: boolean)
-	self._immediate = immediate
-end
-
-function SpringValue:SetDelay(delay: number?)
-	if delay then
-		assert(delay >= 0, "Delay must be a non-negative number")
-	end
-
-	self._delay = delay
-end
-
-function SpringValue:SetUpdater(updater: (any) -> ())
-	self._updater = updater
-
-	if self:Playing() and updater then
-		updater(self:GetValue())
-	end
-end
-
-function SpringValue:GetGoal()
-	return self._goal:ToValue()
-end
-
-function SpringValue:SetValue(value: LinearValue.LinearValueType)
-	self._current = LinearValue.fromValue(value)
-end
-
-function SpringValue:GetValue()
-	return self._current:ToValue()
-end
-
-function SpringValue:Update(dt: number)
-	local currentValues = self._current._value
-	local goalValues = self._goal._value
-	local velocities = self._velocities
-
-	local newValues = {}
-	local updated = false
-
-	for i = 1, #currentValues do
-		local goalValue = goalValues[i]
-		local baseValue, baseVelocity = currentValues[i], velocities[i] or 0
-		local position, newVelocity = self:getPositionVelocity(dt, baseValue, baseVelocity, goalValue)
-
-		newValues[i] = position
-		velocities[i] = newVelocity
-
-		if math.abs(position - goalValue) > EPSILON or math.abs(newVelocity) > EPSILON then
-			updated = true
-		end
-	end
-
-	self._current = LinearValue.new(self._current._ccstr, unpack(newValues))
-
-	return updated
-end
-
-function SpringValue:Playing()
-	return SpringValues[self] ~= nil
-end
-
-function SpringValue:Stop()
-	local value = SpringValues[self]
-	if value then
-		SpringValues[self] = nil
-		value()
-	end
-end
-
-function SpringValue:Run(update: () -> ()?)
-	if update then
-		self._updater = update
-	end
-
-	if self._immediate then
-		self._current = self._goal
-
-		if self._updater then
-			self._updater(self:GetValue())
-		end
-
-		return Promise.resolve()
-	end
-
-	return Promise.new(function(resolve, _, onCancel)
-		local cancelled = false
-		onCancel(function()
-			cancelled = true
-			self:Stop()
-		end)
-
-		if self._delay then
-			task.wait(self._delay)
-
-			if cancelled then
-				return
-			end
-		end
-
-		if update then
-			update(self:GetValue())
-		end
-
-		SpringValues[self] = resolve
-		ensurePooledUpdate()
-	end)
+	tickConnection = renderSteppedPool:Connect(tick)
 end
 
 -- credit to @Quenty
 -- https://github.com/Quenty/NevermoreEngine/blob/main/src/spring/src/Shared/Spring.lua
-function SpringValue:getPositionVelocity(dt: number, current: number, velocity: number, target: number)
-	local p0 = current
-	local v0 = velocity
-	local p1 = target
-	local d = self._damper
-	local s = self._speed
-
+local function computeCoefficients(damper: number, speed: number, dt: number)
+	local d = damper
+	local s = speed
 	local t = s * dt
 	local d2 = d * d
 
@@ -217,7 +89,7 @@ function SpringValue:getPositionVelocity(dt: number, current: number, velocity: 
 		co, si = ep * math.cos(h * t), ep * math.sin(h * t)
 	elseif d2 == 1 then
 		h = 1
-		local ep = math.exp(-d * t) / h
+		local ep = math.exp(-d * t)
 		co, si = ep, ep * t
 	else
 		h = math.sqrt(d2 - 1)
@@ -227,14 +99,213 @@ function SpringValue:getPositionVelocity(dt: number, current: number, velocity: 
 	end
 
 	local a0 = h * co + d * si
-	local a1 = 1 - (h * co + d * si)
+	local a1 = 1 - a0
 	local a2 = si / s
-
 	local b0 = -s * si
 	local b1 = s * si
 	local b2 = h * co - d * si
 
-	return a0 * p0 + a1 * p1 + a2 * v0, b0 * p0 + b1 * p1 + b2 * v0
+	return a0, a1, a2, b0, b1, b2
+end
+
+local function destroy<T>(self: SpringValue<T>)
+	activeSprings[self] = nil
+end
+
+local function impulse<T>(self: SpringValue<T>, value: Types.LinearValueType)
+	local impulseValues = LinearValue(value).values
+	for i = 1, #impulseValues do
+		self.velocities[i] += impulseValues[i]
+	end
+end
+
+local function getVelocity<T>(self: SpringValue<T>)
+	if self.current.ccstr then
+		return self.current.ccstr(unpack(self.velocities))
+	end
+
+	return unpack(self.velocities)
+end
+
+local function alignQuaternionSign<T>(self: SpringValue<T>)
+	if self.goal.ccstr ~= CFrame.new then
+		return
+	end
+
+	local currentValues = self.current.values
+	local goalValues = self.goal.values
+
+	local dot = currentValues[4] * goalValues[4]
+		+ currentValues[5] * goalValues[5]
+		+ currentValues[6] * goalValues[6]
+		+ currentValues[7] * goalValues[7]
+
+	if dot < 0 then
+		goalValues[4] = -goalValues[4]
+		goalValues[5] = -goalValues[5]
+		goalValues[6] = -goalValues[6]
+		goalValues[7] = -goalValues[7]
+	end
+end
+
+local function setGoal<T>(self: SpringValue<T>, goal: Types.LinearValueType)
+	self.goal = LinearValue(goal)
+	alignQuaternionSign(self)
+end
+
+local function setSpeed<T>(self: SpringValue<T>, speed: number)
+	self.speed = speed
+end
+
+local function setDamper<T>(self: SpringValue<T>, damper: number)
+	self.damper = damper
+end
+
+local function setImmediate<T>(self: SpringValue<T>, immediate: boolean)
+	self.immediate = immediate
+end
+
+local function setDelay<T>(self: SpringValue<T>, delay: number?)
+	if delay then
+		assert(delay >= 0, "Delay must be a non-negative number")
+	end
+
+	self.delay = delay
+end
+
+local function playing<T>(self: SpringValue<T>)
+	return activeSprings[self] ~= nil
+end
+
+local function getValue<T>(self: SpringValue<T>)
+	return self.current:toValue()
+end
+
+local function setUpdater<T>(self: SpringValue<T>, updater: (any) -> ())
+	self.updater = updater
+
+	if playing(self) and updater then
+		updater(getValue(self))
+	end
+end
+
+local function getGoal<T>(self: SpringValue<T>)
+	return self.goal:toValue()
+end
+
+local function setValue<T>(self: SpringValue<T>, value: Types.LinearValueType)
+	self.current = LinearValue(value)
+	alignQuaternionSign(self)
+end
+
+local function update<T>(self: SpringValue<T>, dt: number)
+	local currentValues = self.current.values
+	local goalValues = self.goal.values
+	local velocities = self.velocities
+	local updated = false
+
+	local a0, a1, a2, b0, b1, b2 = computeCoefficients(self.damper, self.speed, dt)
+
+	for i = 1, #currentValues do
+		local goalValue = goalValues[i]
+		local current = currentValues[i]
+		local velocity = velocities[i]
+
+		local position = a0 * current + a1 * goalValue + a2 * velocity
+		local newVelocity = b0 * current + b1 * goalValue + b2 * velocity
+
+		currentValues[i] = position
+		velocities[i] = newVelocity
+
+		if math.abs(position - goalValue) > EPSILON or math.abs(newVelocity) > EPSILON then
+			updated = true
+		end
+	end
+
+	return updated
+end
+
+local function stop<T>(self: SpringValue<T>)
+	local resolve = activeSprings[self]
+	if resolve then
+		activeSprings[self] = nil
+		resolve()
+	end
+end
+
+local function run<T>(self: SpringValue<T>, updater: ((any) -> ())?)
+	if updater then
+		self.updater = updater
+	end
+
+	if self.immediate then
+		local current = self.current.values
+		local goal = self.goal.values
+		for i = 1, #current do
+			current[i] = goal[i]
+		end
+
+		if self.updater then
+			self.updater(getValue(self))
+		end
+
+		return Promise.resolve()
+	end
+
+	return Promise.new(function(resolve, _, onCancel)
+		local cancelled = false
+		onCancel(function()
+			cancelled = true
+			stop(self)
+		end)
+
+		if self.delay then
+			task.wait(self.delay)
+
+			if cancelled then
+				return
+			end
+		end
+
+		if updater then
+			updater(getValue(self))
+		end
+
+		activeSprings[self] = resolve
+		ensurePooledUpdate()
+	end)
+end
+
+function SpringValue<T>(initial: Types.LinearValueType, speed: number?, damper: number?): SpringValue<T>
+	local object: SpringValue<T> = {} :: any
+
+	object.current = LinearValue(initial)
+	object.goal = LinearValue(initial)
+	object.velocities = table.create(#object.current.values, 0)
+	object.speed = speed or 1
+	object.damper = damper or 1
+	object.immediate = false
+	object.updater = nil
+	object.delay = nil
+
+	object.destroy = destroy
+	object.impulse = impulse
+	object.getVelocity = getVelocity
+	object.setGoal = setGoal
+	object.setSpeed = setSpeed
+	object.setDamper = setDamper
+	object.setImmediate = setImmediate
+	object.setDelay = setDelay
+	object.setUpdater = setUpdater
+	object.getGoal = getGoal
+	object.setValue = setValue
+	object.getValue = getValue
+	object.update = update
+	object.playing = playing
+	object.stop = stop
+	object.run = run
+
+	return object
 end
 
 return SpringValue
