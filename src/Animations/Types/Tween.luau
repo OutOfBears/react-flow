@@ -2,7 +2,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local BaseAnimation = require("../Base")
-local Promise = require("../../../Promise")
+local Promise = require("../../Promise")
 local LinearValue = require("../../Utility/LinearValue")
 local PooledConnection = require("../../Utility/PooledConnection")
 local Symbols = require("../Symbols")
@@ -19,7 +19,11 @@ export type Tween<T> = BaseAnimation.BaseAnimation & {
 
 local renderSteppedPool = PooledConnection(RunService.RenderStepped)
 
-local function playTween(tweenInfo: TweenInfo, callback: Types.TweenCallback<number>, completed: Types.TweenCallback<unknown>)
+local function playTween(
+	tweenInfo: TweenInfo,
+	callback: Types.TweenCallback<number>,
+	completed: Types.TweenCallback<unknown>
+)
 	local connection: PooledConnection.PooledConnection?
 
 	local repeats = 0
