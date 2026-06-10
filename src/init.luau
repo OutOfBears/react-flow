@@ -1,22 +1,22 @@
-local Animations = require("@self/Animations")
+local Animations = require(script.Animations)
 
 return {
 	Tween = Animations.Tween.definition,
 	Spring = Animations.Spring.definition,
 
-	useAnimation = require("@self/Hooks/useAnimation"),
-	useGroupAnimation = require("@self/Hooks/useGroupAnimation"),
-	useSequenceAnimation = require("@self/Hooks/useSequenceAnimation"),
+	useAnimation = require(script.Hooks.useAnimation),
+	useGroupAnimation = require(script.Hooks.useGroupAnimation),
+	useSequenceAnimation = require(script.Hooks.useSequenceAnimation),
 
-	useSpring = require("@self/Hooks/useSpring"),
-	useTween = require("@self/Hooks/useTween"),
+	useSpring = require(script.Hooks.useSpring),
+	useTween = require(script.Hooks.useTween),
 
-	useSpringValue = require("@self/Hooks/useSpringValue"),
-	useTweenValue = require("@self/Hooks/useTweenValue"),
+	useSpringValue = require(script.Hooks.useSpringValue),
+	useTweenValue = require(script.Hooks.useTweenValue),
 
-	useBindings = require("@self/Hooks/useBindings"),
-	useTransparencyModifier = require("@self/Hooks/useTransparencyModifier"),
+	useBindings = require(script.Hooks.useBindings),
+	useTransparencyModifier = require(script.Hooks.useTransparencyModifier),
 
-	TransitionFragment = require("@self/Components/TransitionFragment"),
-	DynamicList = require("@self/Components/DynamicList"),
+	TransitionFragment = require(script.Components.TransitionFragment),
+	DynamicList = require(script.Components.DynamicList),
 }
